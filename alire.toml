@@ -16,4 +16,3 @@ command = ["alr", "build"]
 
 [[depends-on]]
 ada_toml = "~0.4.0"
-yeison = "~0.1.0"

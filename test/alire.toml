@@ -10,3 +10,9 @@ website = ""
 tags = ["test"]
 
 executables = ["test"]
+
+[[depends-on]]
+lml = "*"
+
+[[pins]]
+lml = { path='..' }
