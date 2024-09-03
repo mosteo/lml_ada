@@ -30,6 +30,8 @@ private
       Root   : TOML_Value := No_TOML_Value;
    end record;
 
+   overriding function Make return Builder is (others => <>);
+
    overriding procedure Append_Impl (This : in out Builder; V : Text);
 
    overriding procedure Begin_Map_Impl (This : in out Builder);

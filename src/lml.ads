@@ -2,6 +2,8 @@ with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 
 package LML with Preelaborate is
 
+   type Formats is (JSON, TOML);
+
    subtype Text is Wide_Wide_String;
 
    subtype Text_UTF8 is String;

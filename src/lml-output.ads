@@ -19,7 +19,10 @@ package LML.Output with Preelaborate is
    procedure End_Vec (This : in out Builder'Class);
 
    function To_Text (This : in out Builder) return Text
-                     is (raise Program_Error with "must be overriden");
+   is (raise Program_Error with "must be overriden");
+
+   function Make return Builder
+   is (raise Program_Error with "must be overriden");
 
 private
 

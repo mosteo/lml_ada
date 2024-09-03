@@ -16,3 +16,9 @@ command = ["alr", "build"]
 
 [[depends-on]]
 ada_toml = "~0.4.0"
+gnatcoll = "^21"
+
+[[pins]]
+[pins.gnatcoll]
+url    = "https://github.com/alire-project/gnatcoll-core.git"
+commit = "4e663b87a028252e7e074f054f8f453661397166"

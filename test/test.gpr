@@ -1,4 +1,5 @@
 with "config/test_config.gpr";
+
 project Test is
 
    for Source_Dirs use ("src/", "config/");
@@ -8,7 +9,7 @@ project Test is
    for Main use ("test.adb");
 
    package Compiler is
-      for Default_Switches ("Ada") use Test_Config.Ada_Compiler_Switches;
+      for Default_Switches ("ada") use Test_Config.Ada_Compiler_Switches;
    end Compiler;
 
    package Binder is
@@ -20,3 +21,4 @@ project Test is
    end Install;
 
 end Test;
+
