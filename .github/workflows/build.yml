@@ -1,0 +1,28 @@
+name: build
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Alire and toolchain
+      uses: alire-project/setup-alire@v4
+
+    - name: Build check
+      run: alr -q build
+
+    - name: Run tests
+      run: alr test
