@@ -1,6 +1,8 @@
-with GNATCOLL.JSON;
+with Yeison_12;
 
 package LML.Output.JSON is
+
+   package Yeison renames Yeison_12;
 
    subtype Parent is Output.Builder;
 
@@ -12,14 +14,12 @@ package LML.Output.JSON is
 
 private
 
-   use GNATCOLL.JSON;
-
    package Value_Stacks is new
-     Ada.Containers.Indefinite_Doubly_Linked_Lists (JSON_Value);
+     Ada.Containers.Indefinite_Doubly_Linked_Lists (Yeison.Any, Yeison."=");
 
    type Builder is new Parent with record
       Parent : Value_Stacks.List;
-      Root   : JSON_Value := JSON_Null;
+      Root   : Yeison.Any := Yeison.Invalid;
    end record;
 
    overriding function Make return Builder is (others => <>);

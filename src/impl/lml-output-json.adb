@@ -1,5 +1,7 @@
 package body LML.Output.JSON is
 
+   use all type Yeison.Kinds;
+
    -----------
    -- Clear --
    -----------
@@ -16,26 +18,26 @@ package body LML.Output.JSON is
    overriding
    function To_Text (This : in out Builder) return Text is
    begin
-      return Decode (This.Root.Write (Compact => False));
+      return This.Root.Image (Format => Yeison.Impl.JSON, Compact => False);
    end To_Text;
 
    -----------------
    -- Append_JSON --
    -----------------
 
-   procedure Append_JSON (This : in out Builder; V : JSON_Value) is
+   procedure Append_JSON (This : in out Builder; V : Yeison.Any) is
    begin
       if not This.Parent.Is_Empty then
          case This.Parent.Last_Element.Kind is
-            when JSON_Object_Type =>
-               This.Parent.Last_Element.Set_Field (Encode (This.Pop), V);
-            when JSON_Array_Type =>
+            when Map_Kind =>
+               This.Parent.Last_Element.Insert (Yeison.Make_Str (This.Pop), V);
+            when Vec_Kind =>
                This.Parent.Last_Element.Append (V);
             when others =>
                raise Program_Error
                  with "cannot append, parent is not a collection";
          end case;
-      elsif V.Kind not in JSON_Container_Value_Type then
+      elsif V.Kind not in Yeison.Impl.Composite_Kinds then
          raise Program_Error
            with "cannot append scalar while parent is empty";
       end if;
@@ -47,7 +49,7 @@ package body LML.Output.JSON is
 
    overriding procedure Append_Impl (This : in out Builder; V : Text) is
    begin
-      This.Append_JSON (Create (Encode (V)));
+      This.Append_JSON (Yeison.Make_Str (V));
    end Append_Impl;
 
    --------------------
@@ -55,7 +57,7 @@ package body LML.Output.JSON is
    --------------------
 
    overriding procedure Begin_Map_Impl (This : in out Builder) is
-      New_Table : constant JSON_Value := Create_Object;
+      New_Table : constant Yeison.Any := Yeison.Empty_Map;
    begin
       This.Append_JSON (New_Table);
       This.Parent.Append (New_Table);
@@ -67,7 +69,7 @@ package body LML.Output.JSON is
 
    overriding procedure End_Map_Impl (This : in out Builder) is
    begin
-      if not This.Root.Is_Empty then
+      if This.Root.Is_Valid then
          raise Program_Error with "Two roots in structure?";
       end if;
 
@@ -83,7 +85,7 @@ package body LML.Output.JSON is
    --------------------
 
    overriding procedure Begin_Vec_Impl (This : in out Builder) is
-      New_Vector : constant JSON_Value := Create (Empty_Array);
+      New_Vector : constant Yeison.Any := Yeison.Empty_Vec;
    begin
       This.Append_JSON (New_Vector);
       This.Parent.Append (New_Vector);

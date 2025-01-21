@@ -1,6 +1,6 @@
 name = "lml"
 description = "Lightweight Markup Language conversions"
-version = "0.1.0-dev"
+version = "0.1.0"
 
 authors = ["Alejandro R. Mosteo"]
 maintainers = ["Alejandro R. Mosteo <alejandro@mosteo.com>"]
@@ -16,9 +16,7 @@ command = ["alr", "run"]
 
 [[depends-on]]
 ada_toml = "~0.4.0"
-gnatcoll = "^21"
+yeison_12 = "0.1.0"
 
 [[pins]]
-[pins.gnatcoll]
-url    = "https://github.com/alire-project/gnatcoll-core.git"
-commit = "4e663b87a028252e7e074f054f8f453661397166"
+yeison_12 = { path='../yeison/yeison_12' }
