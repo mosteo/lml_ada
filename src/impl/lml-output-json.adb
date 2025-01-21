@@ -1,3 +1,5 @@
+with Ada.Wide_Wide_Text_IO; use Ada.Wide_Wide_Text_IO;
+
 package body LML.Output.JSON is
 
    use all type Yeison.Kinds;
@@ -30,9 +32,9 @@ package body LML.Output.JSON is
       if not This.Parent.Is_Empty then
          case This.Parent.Last_Element.Kind is
             when Map_Kind =>
-               This.Parent.Last_Element.Insert (Yeison.Make_Str (This.Pop), V);
+               This.Parent.Reference (This.Parent.Last).Insert (Yeison.Make_Str (This.Pop), V);
             when Vec_Kind =>
-               This.Parent.Last_Element.Append (V);
+               This.Parent.Reference (This.Parent.Last).Append (V);
             when others =>
                raise Program_Error
                  with "cannot append, parent is not a collection";
