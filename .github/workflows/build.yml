@@ -24,4 +24,4 @@ jobs:
       run: alr -q build
 
     - name: Run tests
-      run: cd tests && alr -q run
+      run: alr test
