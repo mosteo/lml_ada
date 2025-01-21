@@ -12,7 +12,7 @@ tags = ["markup", "language", "conversion", "json", "yaml", "toml"]
 [[actions]]
 type = "test"
 directory = "test"
-command = ["alr", "build"]
+command = ["alr", "run"]
 
 [[depends-on]]
 ada_toml = "~0.4.0"
