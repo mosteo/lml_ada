@@ -1,4 +1,4 @@
-with Ada.Wide_Wide_Text_IO; use Ada.Wide_Wide_Text_IO;
+--  with Ada.Wide_Wide_Text_IO; use Ada.Wide_Wide_Text_IO;
 
 package body LML.Output.JSON is
 
@@ -32,7 +32,8 @@ package body LML.Output.JSON is
       if not This.Parent.Is_Empty then
          case This.Parent.Last_Element.Kind is
             when Map_Kind =>
-               This.Parent.Reference (This.Parent.Last).Insert (Yeison.Make_Str (This.Pop), V);
+               This.Parent.Reference (This.Parent.Last)
+                          .Insert (Yeison.Make_Str (This.Pop), V);
             when Vec_Kind =>
                This.Parent.Reference (This.Parent.Last).Append (V);
             when others =>

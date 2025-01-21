@@ -14,21 +14,21 @@ procedure Test is
       Builder.End_Map;
    end String_In_Table;
 
-   procedure Table (Builder : in out LML.Output.Builder'Class) is
-   begin
-      Builder.Begin_Map;
-      Builder.Insert ("key1");
-      Builder.Append ("val1");
-      Builder.Insert ("key2");
-      Builder.Append ("val2");
-      Builder.End_Map;
-   end Table;
+   --  procedure Table (Builder : in out LML.Output.Builder'Class) is
+   --  begin
+   --     Builder.Begin_Map;
+   --     Builder.Insert ("key1");
+   --     Builder.Append ("val1");
+   --     Builder.Insert ("key2");
+   --     Builder.Append ("val2");
+   --     Builder.End_Map;
+   --  end Table;
 
 begin
    for Format in LML.Formats loop
       declare
-         Empty   : constant LML.Output.Builder'Class :=
-                     LML.Output.Factory.Get (Format);
+         --  Empty   : constant LML.Output.Builder'Class :=
+         --              LML.Output.Factory.Get (Format);
          Builder : LML.Output.Builder'Class := LML.Output.Factory.Get (Format);
       begin
          Put_Line ("OUTPUT FORMAT: " & Format'Wide_Wide_Image);
@@ -92,7 +92,7 @@ begin
          --  Builder.End_Map;
          --  Put_Line (Builder.To_Text);
          --
-         --  --  Object in anonymous array. Our TOML lib doesn't allow it out of a
+      --  --  Object in anonymous array. Our TOML lib doesn't allow it out of a
          --  --  table.
          --  if Format not in LML.TOML then
          --     Builder := Empty;

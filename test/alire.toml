@@ -11,6 +11,9 @@ tags = ["test"]
 
 executables = ["test"]
 
+[build-profiles]
+"*" = "validation"
+
 [[depends-on]]
 lml = "*"
 
