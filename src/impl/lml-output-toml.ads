@@ -1,6 +1,6 @@
 with TOML;
 
-package LML.Output.TOML is
+package LML.Output.TOML with Preelaborate is
 
    subtype Parent is Output.Builder;
 
@@ -8,7 +8,7 @@ package LML.Output.TOML is
 
    procedure Clear (This : in out Builder);
 
-   overriding function To_Text (This : in out Builder) return Text;
+   overriding function To_Text (This : Builder) return Text;
 
    --  This Builder reconstructs the TOML structure, which can be retrieved if
    --  needed.

@@ -29,7 +29,7 @@ package body LML.Output.JSON is
    -------------
 
    overriding
-   function To_Text (This : in out Builder) return Text is
+   function To_Text (This : Builder) return Text is
    begin
       if not This.Stack.Is_Empty then
          raise Constraint_Error with "incomplete data structure";

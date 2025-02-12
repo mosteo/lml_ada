@@ -4,7 +4,18 @@ with LML.Output.Factory;
 
 --  with TOML; use TOML;
 
+with Yeison_12;
+
 procedure Test is
+
+   package Yeison renames Yeison_12;
+   use Yeison.Operators;
+
+   Sample : constant Yeison.Any
+     := Yeison.Empty_Map
+       .Insert (+"key", +"val");
+   --      .Insert (+"vec", To_Vec ((+1, +"two")))
+   --      .Insert (+"map", Yeison.Empty_Map.Insert (+"key", +"val"));
 
    subtype Text is Wide_Wide_String;
 
@@ -26,7 +37,7 @@ procedure Test is
       Builder.End_Map;
    end Table;
 
-   procedure Report (Builder : in out LML.Output.Builder'Class; Title : Text)
+   procedure Report (Builder : LML.Output.Builder'Class; Title : Text)
    is
    begin
       Put_Line ("*** " & Title & " ***");
@@ -106,6 +117,8 @@ begin
          Builder.End_Map;
          Report (Builder, "array within table");
 
+         Report (LML.Output.To_Text (Sample, Format), "yeison to text");
+
          --  TOML only allows outputting a table, whereas JSON can output plain
          --  values or anonymous arrays. Thus, following cases can only be
          --  tested on JSON.
@@ -130,6 +143,8 @@ begin
             Builder.End_Vec;
             Report (Builder, "empty anon vec");
          end if;
+
+         --  Direct conversion
 
       end;
    end loop;

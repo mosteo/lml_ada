@@ -18,11 +18,19 @@ package LML.Output with Preelaborate is
 
    procedure End_Vec (This : in out Builder'Class);
 
-   function To_Text (This : in out Builder) return Text
+   function To_Text (This : Builder) return Text
    is (raise Program_Error with "must be overriden");
 
    function Make return Builder
    is (raise Program_Error with "must be overriden");
+
+   --  Other conveniences
+
+   function To_Text (This   : Yeison.Any;
+                     Format : Formats)
+                     return Builder'Class;
+   --  Returns a builder that already has processed This (To_Text will
+   --  immediately return the image of This).
 
 private
 

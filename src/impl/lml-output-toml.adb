@@ -25,7 +25,7 @@ package body LML.Output.TOML is
    -------------
 
    overriding
-   function To_Text (This : in out Builder) return Text is
+   function To_Text (This : Builder) return Text is
    begin
       return Decode (This.Root.Dump_As_String);
    end To_Text;

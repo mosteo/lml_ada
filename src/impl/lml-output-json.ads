@@ -1,6 +1,6 @@
 with Yeison_12;
 
-package LML.Output.JSON is
+package LML.Output.JSON with Preelaborate is
 
    package Yeison renames Yeison_12;
 
@@ -10,7 +10,7 @@ package LML.Output.JSON is
 
    procedure Clear (This : in out Builder);
 
-   overriding function To_Text (This : in out Builder) return Text;
+   overriding function To_Text (This : Builder) return Text;
 
 private
 
