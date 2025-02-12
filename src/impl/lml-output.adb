@@ -84,9 +84,6 @@ package body LML.Output is
    begin
       return Key : constant Text := This.Keys.Last_Element do
          This.Keys.Delete_Last;
-         if not This.Keys.Is_Empty then
-            raise Program_Error with "dangling key";
-         end if;
       end return;
    end Pop;
 

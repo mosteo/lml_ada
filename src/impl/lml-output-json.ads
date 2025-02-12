@@ -18,9 +18,22 @@ private
      Ada.Containers.Indefinite_Doubly_Linked_Lists (Yeison.Any, Yeison."=");
 
    type Builder is new Parent with record
-      Parent : Value_Stacks.List;
-      Root   : Yeison.Any := Yeison.Invalid;
-   end record;
+      Stack : Value_Stacks.List;
+      --  Values as we go building them. When a value is completed, it is
+      --  inserted in its parent.
+      Root  : Yeison.Any;
+      --  Whatever remains after completion
+   end record with
+     Type_Invariant => (if not Stack.Is_Empty then not Root.Is_Valid);
+
+   -------------------
+   -- Current_Value --
+   -------------------
+
+   function Current_Root (This : Builder) return Yeison.Any
+   is (if This.Root.Is_Valid
+       then This.Root
+       else This.Stack.First_Element);
 
    overriding function Make return Builder is (others => <>);
 

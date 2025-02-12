@@ -13,6 +13,17 @@ package body LML.Output.JSON is
       This := (others => <>);
    end Clear;
 
+   -----------------
+   -- Ensure_Open --
+   -----------------
+
+   procedure Ensure_Open (This : Builder) is
+   begin
+      if This.Root.Is_Valid then
+         raise Constraint_Error with "data structure is already complete";
+      end if;
+   end Ensure_Open;
+
    -------------
    -- To_Text --
    -------------
@@ -20,7 +31,11 @@ package body LML.Output.JSON is
    overriding
    function To_Text (This : in out Builder) return Text is
    begin
-      return This.Root.Image (Format => Yeison.Impl.JSON, Compact => False);
+      if not This.Stack.Is_Empty then
+         raise Constraint_Error with "incomplete data structure";
+      else
+         return This.Root.Image (Format => Yeison.Impl.JSON, Compact => False);
+      end if;
    end To_Text;
 
    -----------------
@@ -29,20 +44,22 @@ package body LML.Output.JSON is
 
    procedure Append_JSON (This : in out Builder; V : Yeison.Any) is
    begin
-      if not This.Parent.Is_Empty then
-         case This.Parent.Last_Element.Kind is
+      This.Ensure_Open;
+
+      if not This.Stack.Is_Empty then
+         case This.Stack.Last_Element.Kind is
             when Map_Kind =>
-               This.Parent.Reference (This.Parent.Last)
-                          .Insert (Yeison.Make_Str (This.Pop), V);
+               This.Stack.Reference (This.Stack.Last)
+                         .Insert (Yeison.Make.Str (This.Pop), V);
             when Vec_Kind =>
-               This.Parent.Reference (This.Parent.Last).Append (V);
+               This.Stack.Reference (This.Stack.Last).Append (V);
             when others =>
                raise Program_Error
                  with "cannot append, parent is not a collection";
          end case;
       elsif V.Kind not in Yeison.Impl.Composite_Kinds then
-         raise Program_Error
-           with "cannot append scalar while parent is empty";
+         --  A single value that is in itself the data structure
+         This.Root := V;
       end if;
    end Append_JSON;
 
@@ -52,7 +69,7 @@ package body LML.Output.JSON is
 
    overriding procedure Append_Impl (This : in out Builder; V : Text) is
    begin
-      This.Append_JSON (Yeison.Make_Str (V));
+      This.Append_JSON (Yeison.Make.Str (V));
    end Append_Impl;
 
    --------------------
@@ -62,8 +79,8 @@ package body LML.Output.JSON is
    overriding procedure Begin_Map_Impl (This : in out Builder) is
       New_Table : constant Yeison.Any := Yeison.Empty_Map;
    begin
-      This.Append_JSON (New_Table);
-      This.Parent.Append (New_Table);
+      This.Ensure_Open;
+      This.Stack.Append (New_Table);
    end Begin_Map_Impl;
 
    ------------------
@@ -76,11 +93,17 @@ package body LML.Output.JSON is
          raise Program_Error with "Two roots in structure?";
       end if;
 
-      if This.Parent.Length in 1 then
-         This.Root := This.Parent.Last_Element;
-      end if;
-
-      This.Parent.Delete_Last;
+      --  Insert the completed table into the parent value
+      declare
+         Last : constant Yeison.Any := This.Stack.Last_Element;
+      begin
+         This.Stack.Delete_Last;
+         if This.Stack.Is_Empty then
+            This.Root := Last;
+         else
+            This.Append_JSON (Last);
+         end if;
+      end;
    end End_Map_Impl;
 
    --------------------
@@ -90,8 +113,8 @@ package body LML.Output.JSON is
    overriding procedure Begin_Vec_Impl (This : in out Builder) is
       New_Vector : constant Yeison.Any := Yeison.Empty_Vec;
    begin
-      This.Append_JSON (New_Vector);
-      This.Parent.Append (New_Vector);
+      This.Ensure_Open;
+      This.Stack.Append (New_Vector);
    end Begin_Vec_Impl;
 
    ------------------

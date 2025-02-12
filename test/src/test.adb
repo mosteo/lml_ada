@@ -6,6 +6,8 @@ with LML.Output.Factory;
 
 procedure Test is
 
+   subtype Text is Wide_Wide_String;
+
    procedure String_In_Table (Builder : in out LML.Output.Builder'Class) is
    begin
       Builder.Begin_Map;
@@ -14,93 +16,120 @@ procedure Test is
       Builder.End_Map;
    end String_In_Table;
 
-   --  procedure Table (Builder : in out LML.Output.Builder'Class) is
-   --  begin
-   --     Builder.Begin_Map;
-   --     Builder.Insert ("key1");
-   --     Builder.Append ("val1");
-   --     Builder.Insert ("key2");
-   --     Builder.Append ("val2");
-   --     Builder.End_Map;
-   --  end Table;
+   procedure Table (Builder : in out LML.Output.Builder'Class) is
+   begin
+      Builder.Begin_Map;
+      Builder.Insert ("key1");
+      Builder.Append ("val1");
+      Builder.Insert ("key2");
+      Builder.Append ("val2");
+      Builder.End_Map;
+   end Table;
+
+   procedure Report (Builder : in out LML.Output.Builder'Class; Title : Text)
+   is
+   begin
+      Put_Line ("*** " & Title & " ***");
+      Put_Line (Builder.To_Text);
+   end Report;
 
 begin
    for Format in LML.Formats loop
       declare
-         --  Empty   : constant LML.Output.Builder'Class :=
-         --              LML.Output.Factory.Get (Format);
+         Empty   : constant LML.Output.Builder'Class :=
+                     LML.Output.Factory.Get (Format);
          Builder : LML.Output.Builder'Class := LML.Output.Factory.Get (Format);
       begin
          Put_Line ("OUTPUT FORMAT: " & Format'Wide_Wide_Image);
 
          --  Output a simple string in anonymous table
          String_In_Table (Builder);
-         Put_Line (Builder.To_Text);
+         Report (Builder, "string in anon table");
 
-         --  --  Output within a named table
-         --  Builder := Empty;
-         --  Builder.Begin_Map;
-         --  Builder.Insert ("table");
-         --  String_In_Table (Builder);
-         --  Builder.End_Map;
-         --  Put_Line (Builder.To_Text);
-         --
-         --  --  Doubly-nested table
-         --  Builder := Empty;
-         --  Builder.Begin_Map;
-         --  Builder.Insert ("parent");
-         --  Builder.Begin_Map;
-         --  Builder.Insert ("child");
-         --  String_In_Table (Builder);
-         --  Builder.End_Map;
-         --  Builder.End_Map;
-         --  Put_Line (Builder.To_Text);
-         --
-         --  --  Output an array of strings inside the top-level anon table
-         --  Builder := Empty;
-         --  Builder.Begin_Map;
-         --  Builder.Insert ("vector");
-         --  Builder.Begin_Vec;
-         --  Builder.Append ("item1");
-         --  Builder.Append ("item2");
-         --  Builder.End_Vec;
-         --  Builder.End_Map;
-         --  Put_Line (Builder.To_Text);
-         --
-         --  --  Output an array of records
-         --  Builder := Empty;
-         --  Builder.Begin_Map;
-         --  Builder.Insert ("vector");
-         --  Builder.Begin_Vec;
-         --  Table (Builder);
-         --  Table (Builder);
-         --  Builder.End_Vec;
-         --  Builder.End_Map;
-         --  Put_Line (Builder.To_Text);
-         --
-         --  --  Output table containing array
-         --  Builder := Empty;
-         --  Builder.Begin_Map;
-         --  Builder.Insert ("table");
-         --  Builder.Begin_Map;
-         --  Builder.Insert ("vector");
-         --  Builder.Begin_Vec;
-         --  Builder.Append ("item1");
-         --  Builder.Append ("item2");
-         --  Builder.End_Vec;
-         --  Builder.End_Map;
-         --  Builder.End_Map;
-         --  Put_Line (Builder.To_Text);
-         --
-      --  --  Object in anonymous array. Our TOML lib doesn't allow it out of a
-         --  --  table.
-         --  if Format not in LML.TOML then
-         --     Builder := Empty;
-         --     Builder.Begin_Vec;
-         --     Table (Builder);
-         --     Builder.End_Vec;
-         --     Put_Line (Builder.To_Text);
-         --  end if;
+         --  Output within a named table
+         Builder := Empty;
+         Builder.Begin_Map;
+         Builder.Insert ("table");
+         String_In_Table (Builder);
+         Builder.End_Map;
+         Report (Builder, "table within table");
+
+         --  A simple table
+         Builder := Empty;
+         Table (Builder);
+         Report (Builder, "anon table");
+
+         --  Doubly-nested table
+         Builder := Empty;
+         Builder.Begin_Map;
+         Builder.Insert ("parent");
+         Builder.Begin_Map;
+         Builder.Insert ("child");
+         String_In_Table (Builder);
+         Builder.End_Map;
+         Builder.End_Map;
+         Report (Builder, "doubly-nested table");
+
+         --  Output an array of strings inside the top-level anon table
+         Builder := Empty;
+         Builder.Begin_Map;
+         Builder.Insert ("vector");
+         Builder.Begin_Vec;
+         Builder.Append ("item1");
+         Builder.Append ("item2");
+         Builder.End_Vec;
+         Builder.End_Map;
+         Report (Builder, "array within table");
+
+         --  Output an array of records
+         Builder := Empty;
+         Builder.Begin_Map;
+         Builder.Insert ("vector");
+         Builder.Begin_Vec;
+         Table (Builder);
+         Table (Builder);
+         Builder.End_Vec;
+         Builder.End_Map;
+         Report (Builder, "array of tables");
+
+         --  Output table containing array
+         Builder := Empty;
+         Builder.Begin_Map;
+         Builder.Insert ("table");
+         Builder.Begin_Map;
+         Builder.Insert ("vector");
+         Builder.Begin_Vec;
+         Builder.Append ("item1");
+         Builder.Append ("item2");
+         Builder.End_Vec;
+         Builder.End_Map;
+         Builder.End_Map;
+         Report (Builder, "array within table");
+
+         --  TOML only allows outputting a table, whereas JSON can output plain
+         --  values or anonymous arrays. Thus, following cases can only be
+         --  tested on JSON.
+
+         if Format not in LML.TOML then
+            --  Object in anonymous array. Our TOML lib doesn't allow it out of
+            --  a table.
+            Builder := Empty;
+            Builder.Begin_Vec;
+            Table (Builder);
+            Builder.End_Vec;
+            Report (Builder, "table within anon array");
+
+            --  A plain string value
+            Builder := Empty;
+            Builder.Append ("stand-alone string");
+            Report (Builder, "stand-alone string");
+
+            --  An empty vector
+            Builder := Empty;
+            Builder.Begin_Vec;
+            Builder.End_Vec;
+            Report (Builder, "empty anon vec");
+         end if;
 
       end;
    end loop;

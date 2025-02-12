@@ -9,6 +9,17 @@ package body LML.Output.TOML is
       This := (others => <>);
    end Clear;
 
+   -----------------
+   -- Ensure_Open --
+   -----------------
+
+   procedure Ensure_Open (This : Builder) is
+   begin
+      if This.Root /= No_TOML_Value then
+         raise Constraint_Error with "data structure is already complete";
+      end if;
+   end Ensure_Open;
+
    -------------
    -- To_Text --
    -------------
@@ -25,6 +36,7 @@ package body LML.Output.TOML is
 
    procedure Append_TOML (This : in out Builder; V : TOML_Value) is
    begin
+      This.Ensure_Open;
       if not This.Parent.Is_Empty then
          case This.Parent.Last_Element.Kind is
             when TOML_Table =>
@@ -36,8 +48,8 @@ package body LML.Output.TOML is
                  with "cannot append, parent is not a collection";
          end case;
       elsif V.Kind not in Composite_Value_Kind then
-         raise Program_Error
-           with "cannot append scalar while parent is empty";
+         --  The stand-alone value is the data structure itself
+         This.Root := V;
       end if;
    end Append_TOML;
 
@@ -57,6 +69,7 @@ package body LML.Output.TOML is
    overriding procedure Begin_Map_Impl (This : in out Builder) is
       New_Table : constant TOML_Value := Create_Table;
    begin
+      This.Ensure_Open;
       This.Append_TOML (New_Table);
       This.Parent.Append (New_Table);
    end Begin_Map_Impl;
@@ -85,6 +98,7 @@ package body LML.Output.TOML is
    overriding procedure Begin_Vec_Impl (This : in out Builder) is
       New_Vector : constant TOML_Value := Create_Array;
    begin
+      This.Ensure_Open;
       This.Append_TOML (New_Vector);
       This.Parent.Append (New_Vector);
    end Begin_Vec_Impl;
