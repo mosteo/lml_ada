@@ -1,3 +1,9 @@
+pragma Warnings (Off);
+with GNAT.IO; use GNAT.IO;
+pragma Warnings (On);
+
+with LML.Output.Factory;
+
 package body LML.Output is
 
    ----------------------
@@ -84,10 +90,55 @@ package body LML.Output is
    begin
       return Key : constant Text := This.Keys.Last_Element do
          This.Keys.Delete_Last;
-         if not This.Keys.Is_Empty then
-            raise Program_Error with "dangling key";
-         end if;
       end return;
    end Pop;
+
+   -------------
+   -- To_Text --
+   -------------
+
+   function To_Text (This   : Yeison.Any;
+                     Format : Formats)
+                     return Builder'Class
+   is
+
+      Builder : Output.Builder'Class := Output.Factory.Get (Format);
+
+      -------------
+      -- To_Text --
+      -------------
+
+      procedure To_Text (This : Yeison.Any) is
+         use all type Yeison.Kinds;
+      begin
+         case This.Kind is
+            when Yeison.Scalar_Kinds =>
+               Builder.Append (This.Image);
+
+            when Map_Kind =>
+               Builder.Begin_Map;
+
+               for Key of This.Keys loop
+                  if Key.Kind /= Str_Kind then
+                     raise Program_Error
+                       with "LML currently only supports string keys";
+                  end if;
+
+                  Builder.Insert (Key.As_Text);
+                  To_Text (This ((Key with null record)));
+               end loop;
+
+               Builder.End_Map;
+
+            when others =>
+               raise Program_Error with "unimplemented";
+         end case;
+      end To_Text;
+
+   begin
+      To_Text (This);
+
+      return Builder;
+   end To_Text;
 
 end LML.Output;

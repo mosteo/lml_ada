@@ -1,6 +1,8 @@
-with GNATCOLL.JSON;
+with Yeison_12;
 
-package LML.Output.JSON is
+package LML.Output.JSON with Preelaborate is
+
+   package Yeison renames Yeison_12;
 
    subtype Parent is Output.Builder;
 
@@ -8,19 +10,30 @@ package LML.Output.JSON is
 
    procedure Clear (This : in out Builder);
 
-   overriding function To_Text (This : in out Builder) return Text;
+   overriding function To_Text (This : Builder) return Text;
 
 private
 
-   use GNATCOLL.JSON;
-
    package Value_Stacks is new
-     Ada.Containers.Indefinite_Doubly_Linked_Lists (JSON_Value);
+     Ada.Containers.Indefinite_Doubly_Linked_Lists (Yeison.Any, Yeison."=");
 
    type Builder is new Parent with record
-      Parent : Value_Stacks.List;
-      Root   : JSON_Value := JSON_Null;
-   end record;
+      Stack : Value_Stacks.List;
+      --  Values as we go building them. When a value is completed, it is
+      --  inserted in its parent.
+      Root  : Yeison.Any;
+      --  Whatever remains after completion
+   end record with
+     Type_Invariant => (if not Stack.Is_Empty then not Root.Is_Valid);
+
+   -------------------
+   -- Current_Value --
+   -------------------
+
+   function Current_Root (This : Builder) return Yeison.Any
+   is (if This.Root.Is_Valid
+       then This.Root
+       else This.Stack.First_Element);
 
    overriding function Make return Builder is (others => <>);
 

@@ -5,7 +5,7 @@ pragma Style_Checks (Off);
 package Lml_Config is
    pragma Pure;
 
-   Crate_Version : constant String := "0.1.0-dev";
+   Crate_Version : constant String := "0.1.0";
    Crate_Name : constant String := "lml";
 
    Alire_Host_OS : constant String := "linux";
