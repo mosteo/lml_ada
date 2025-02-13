@@ -1,8 +1,9 @@
 with Ada.Wide_Wide_Text_IO; use Ada.Wide_Wide_Text_IO;
 
+with LML.Convert.TOML_JSON;
 with LML.Output.Factory;
 
---  with TOML; use TOML;
+with TOML; use TOML;
 
 with Yeison_12;
 
@@ -16,6 +17,8 @@ procedure Test is
        .Insert (+"key", +"val");
    --      .Insert (+"vec", To_Vec ((+1, +"two")))
    --      .Insert (+"map", Yeison.Empty_Map.Insert (+"key", +"val"));
+
+   TOML_Sample : TOML_Value;
 
    subtype Text is Wide_Wide_String;
 
@@ -45,6 +48,13 @@ procedure Test is
    end Report;
 
 begin
+   --  Initialize TOML sample
+
+   TOML_Sample := Create_Array;
+   TOML_Sample.Append (Create_String ("some string"));
+   TOML_Sample.Append (Create_Table);
+   TOML_Sample.Item (2).Set ("key", Create_String ("val"));
+
    for Format in LML.Formats loop
       declare
          Empty   : constant LML.Output.Builder'Class :=
@@ -143,9 +153,9 @@ begin
             Builder.End_Vec;
             Report (Builder, "empty anon vec");
          end if;
-
-         --  Direct conversion
-
       end;
    end loop;
+
+   --  Direct TOML -> JSON conversion
+   Put_Line ("TOML -> JSON: " & LML.Convert.TOML_JSON.Image (TOML_Sample));
 end Test;

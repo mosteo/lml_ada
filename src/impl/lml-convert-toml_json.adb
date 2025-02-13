@@ -18,4 +18,16 @@ package body LML.Convert.TOML_JSON is
       return Convert (This);
    end Image;
 
+   -----------
+   -- Build --
+   -----------
+
+   function Build (Image : Text) return Output.Builder'Class is
+      Builder : Output.JSON.Builder;
+   begin
+      Input.TOML.From_TOML (Input.TOML.From_String (Image), Builder);
+
+      return Builder;
+   end Build;
+
 end LML.Convert.TOML_JSON;
