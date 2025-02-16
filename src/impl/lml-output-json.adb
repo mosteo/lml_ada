@@ -34,7 +34,7 @@ package body LML.Output.JSON is
       if not This.Stack.Is_Empty then
          raise Constraint_Error with "incomplete data structure";
       else
-         return This.Root.Image (Format => Yeison.Impl.JSON, Compact => False);
+         return This.Root.Image (Format => Yeison.Impl.JSON);
       end if;
    end To_Text;
 
