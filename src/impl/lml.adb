@@ -39,6 +39,6 @@ package body LML is
    function To_Text (This   : Yeison.Any;
                      Format : Formats)
                      return Text
-   is (Output.To_Text (This, Format).To_Text);
+   is (Output.To_Builder (This, Format).To_Text);
 
 end LML;

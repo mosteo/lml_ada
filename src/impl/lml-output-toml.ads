@@ -32,7 +32,7 @@ private
 
    overriding function Make return Builder is (others => <>);
 
-   overriding procedure Append_Impl (This : in out Builder; V : Text);
+   overriding procedure Append_Impl (This : in out Builder; V : Scalar);
 
    overriding procedure Begin_Map_Impl (This : in out Builder);
 

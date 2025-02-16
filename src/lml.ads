@@ -8,6 +8,11 @@ package LML with Preelaborate is
 
    type Formats is (JSON, TOML);
 
+   subtype Scalar       is Yeison.Scalar;
+   subtype Scalar_Kinds is Yeison.Scalar_Kinds;
+
+   package Scalars renames Yeison.Scalars;
+
    subtype Text is Wide_Wide_String;
 
    subtype Text_UTF8 is String;

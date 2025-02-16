@@ -7,7 +7,7 @@ package LML.Output with Preelaborate is
    procedure Insert (This : in out Builder'Class; K : Text);
    --  Creates the key for the next element in a table
 
-   procedure Append (This : in out Builder'Class; V : Text);
+   procedure Append (This : in out Builder'Class; Val : Scalar);
    --  Appends a value to a vector, or provides the value for the previous key
 
    procedure Begin_Map (This : in out Builder'Class);
@@ -26,9 +26,9 @@ package LML.Output with Preelaborate is
 
    --  Other conveniences
 
-   function To_Text (This   : Yeison.Any;
-                     Format : Formats)
-                     return Builder'Class;
+   function To_Builder (This   : Yeison.Any;
+                        Format : Formats)
+                        return Builder'Class;
    --  Returns a builder that already has processed This (To_Text will
    --  immediately return the image of This).
 
@@ -39,7 +39,7 @@ private
 
    procedure Insert_Impl (This : in out Builder; K : Text) is null;
 
-   procedure Append_Impl (This : in out Builder; V : Text) is null;
+   procedure Append_Impl (This : in out Builder; Val : Scalar) is null;
 
    procedure Begin_Map_Impl (This : in out Builder) is null;
 

@@ -57,9 +57,36 @@ package body LML.Output.TOML is
    -- Append_Impl --
    -----------------
 
-   overriding procedure Append_Impl (This : in out Builder; V : Text) is
+   overriding procedure Append_Impl (This : in out Builder; V : Scalar) is
+      use all type Scalar_Kinds;
+
+      -----------------
+      -- Create_Real --
+      -----------------
+
+      function Create_Real return TOML_Value
+      is (Create_Float
+          ((case V.As_Real.Class is
+                when Yeison.Reals.Finite =>
+                   Any_Float'(Regular, Valid_Float (V.As_Real.Value)),
+                when Yeison.Reals.Infinite =>
+                   Any_Float'(Infinity, V.As_Real.Positive),
+                when Yeison.Reals.NaN      =>
+                   Any_Float'(NaN, True)
+            )));
+
    begin
-      This.Append_TOML (Create_String (Encode (V)));
+      This.Append_TOML
+        (case V.Kind is
+            when Bool_Kind =>
+              Create_Boolean (V.As_Boolean),
+            when Int_Kind  =>
+              Create_Integer (Any_Integer (V.As_Integer)),
+            when Real_Kind =>
+              Create_Real,
+            when Str_Kind  =>
+              Create_String  (Encode (V.As_Text))
+        );
    end Append_Impl;
 
    --------------------

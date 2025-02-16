@@ -67,9 +67,9 @@ package body LML.Output.JSON is
    -- Append_Impl --
    -----------------
 
-   overriding procedure Append_Impl (This : in out Builder; V : Text) is
+   overriding procedure Append_Impl (This : in out Builder; Val : Scalar) is
    begin
-      This.Append_JSON (Yeison.Make.Str (V));
+      This.Append_JSON (Yeison.Make.Scalar (Val));
    end Append_Impl;
 
    --------------------
