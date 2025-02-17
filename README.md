@@ -2,6 +2,22 @@
 [![Alire](https://img.shields.io/endpoint?url=https://alire.ada.dev/badges/lml.json)](https://alire.ada.dev/crates/lml.html)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-## Lightweight Markup Language conversions
+## Human-readable Data-serialization Language Conversions
 
-A library to convert from common human markup languajes (JSON, TOML, etc.)
+A preelaborable library to convert between common human-readable data-serialization languages (JSON, TOML, YAML).
+
+Supported conversions (from text input to text output):
+
+| In↓ / Out→ | JSON | TOML | YAML |
+|:----------:|:----:|:----:|:----:|
+| **TOML**   |   ✓  |   ✓  |   ✓  |
+
+Supported typed conversions (types from libraries listed below):
+
+| In↓ / Out→ | TOML | Yeison |
+|:----------:|:----:|:------:|
+| **TOML**   |   ✓  |   ✓    |
+| **Yeison** |   ✓  |   ✓    |
+
+- TOML: https://github.com/pmderodat/ada-toml
+- Yeison: https://github.com/mosteo/yeison

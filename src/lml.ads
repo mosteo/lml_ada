@@ -6,7 +6,7 @@ package LML with Preelaborate is
 
    package Yeison renames Yeison_12;
 
-   type Formats is (JSON, TOML);
+   type Formats is (JSON, TOML, YAML);
 
    subtype Scalar       is Yeison.Scalar;
    subtype Scalar_Kinds is Yeison.Scalar_Kinds;
