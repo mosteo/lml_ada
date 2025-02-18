@@ -9,6 +9,21 @@ package LML.Output.YAML with Preelaborate is
 
    overriding function To_Text (This : Builder) return Text;
 
+   type Styles is
+     (Compact, -- Default
+      --  The first element of an array is always in the same line as the '-'.
+      --  For nested arrays it can be somewhat confusing, but it is what is
+      --  usually seen in hand-produced documents.
+
+      Expanded
+      --  Arrays of non-scalars always have a standalone '-' in its own line.
+      --  This favors understanding the hierarchy (similar to JSON style).
+
+      --  Arrays of scalars are always in compact mode.
+     );
+
+   procedure Set_Style (This : in out Builder; Style : Styles);
+
 private
 
    package Value_Stacks is new
@@ -27,6 +42,8 @@ private
       Depth  : Integer := -1;
       Result : UText;
       Stack  : Stacks.List := To_List (Root);
+      Inline : Boolean := False; -- Whether next item goes in the same line
+      Style  : Styles  := Compact;
    end record with
      Type_Invariant => not Stack.Is_Empty;
 
@@ -43,12 +60,5 @@ private
    overriding procedure Begin_Vec_Impl (This : in out Builder);
 
    overriding procedure End_Vec_Impl (This : in out Builder);
-
-   -------------
-   -- To_Text --
-   -------------
-
-   overriding function To_Text (This : Builder) return Text
-   is (To_Wide_Wide_String (This.Result));
 
 end LML.Output.YAML;

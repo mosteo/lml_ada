@@ -7,6 +7,24 @@ package body LML.Output.YAML is
    package Chars renames Ada.Characters.Wide_Wide_Latin_1;
 
    -------------
+   -- To_Text --
+   -------------
+
+   overriding function To_Text (This : Builder) return Text
+   is (if This.Result /= "" and then Tail (This.Result, 1) = "" & Chars.LF
+       then To_Wide_Wide_String (Head (This.Result, Length (This.Result) - 1))
+       else To_Wide_Wide_String (This.Result));
+
+   ---------------
+   -- Set_Style --
+   ---------------
+
+   procedure Set_Style (This : in out Builder; Style : Styles) is
+   begin
+      This.Style := Style;
+   end Set_Style;
+
+   -------------
    -- To_List --
    -------------
 
@@ -42,6 +60,20 @@ package body LML.Output.YAML is
       Append (This.Result, Chars.LF);
    end New_Line;
 
+   -----------------
+   -- Apply_Style --
+   -----------------
+
+   procedure Apply_Style (This : in out Builder) is
+   begin
+      case This.Style is
+         when Compact =>
+            This.Inline := True;
+         when Expanded =>
+            This.New_Line;
+      end case;
+   end Apply_Style;
+
    ---------
    -- Tab --
    ---------
@@ -55,7 +87,11 @@ package body LML.Output.YAML is
 
    procedure Indent (This : in out Builder) is
    begin
-      Append (This.Result, This.Tab);
+      if This.Inline then
+         This.Inline := False;
+      else
+         Append (This.Result, This.Tab);
+      end if;
    end Indent;
 
    ------------------
@@ -133,7 +169,7 @@ package body LML.Output.YAML is
       case Parent is
          when List =>
             This.Array_Marker;
-            This.New_Line;
+            This.Apply_Style;
          when Map =>
             This.New_Line;
          when Root =>
@@ -169,7 +205,7 @@ package body LML.Output.YAML is
       case Parent is
          when List =>
             This.Array_Marker;
-            This.New_Line;
+            This.Apply_Style;
          when Map =>
             This.New_Line;
          when Root =>
