@@ -19,7 +19,7 @@ package body LML.Output.JSON is
 
    procedure Ensure_Open (This : Builder) is
    begin
-      if This.Root.Is_Valid then
+      if This.Root.Has_Value then
          raise Constraint_Error with "data structure is already complete";
       end if;
    end Ensure_Open;
@@ -89,7 +89,7 @@ package body LML.Output.JSON is
 
    overriding procedure End_Map_Impl (This : in out Builder) is
    begin
-      if This.Root.Is_Valid then
+      if This.Root.Has_Value then
          raise Program_Error with "Two roots in structure?";
       end if;
 
