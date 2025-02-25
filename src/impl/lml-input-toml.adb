@@ -34,8 +34,34 @@ package body LML.Input.TOML is
          use Standard.TOML;
       begin
          case This.Kind is
+            when TOML_Boolean =>
+               Builder.Append (Scalars.New_Bool (This.As_Boolean));
+
+            when TOML_Integer =>
+               Builder.Append
+                 (Scalars.New_Int (Yeison.Big_Int (This.As_Integer)));
+
+            when TOML_Float =>
+               case This.As_Float.Kind is
+                  when Regular =>
+                     Builder.Append
+                       (Scalars.New_Real
+                          (Yeison.Reals.New_Real
+                               (Yeison.Big_Real
+                                    (This.As_Float.Value))));
+                  when Infinity =>
+                     Builder.Append
+                       (Scalars.New_Real
+                          (Yeison.Reals.New_Infinite
+                               (This.As_Float.Positive)));
+                  when NaN =>
+                     Builder.Append
+                       (Scalars.New_Real
+                          (Yeison.Reals.New_NaN));
+               end case;
+
             when TOML_String =>
-               Builder.Append (Decode (This.As_String));
+               Builder.Append (Scalars.New_Text (Decode (This.As_String)));
 
             when TOML_Table =>
                Builder.Begin_Map;

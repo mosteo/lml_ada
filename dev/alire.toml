@@ -22,3 +22,9 @@ lml = { path='..' }
 
 [[pins]]
 yeison_12 = { path='../../yeison/yeison_12' }
+
+[[depends-on]]
+test = "~0.1.0-dev"
+
+[[pins]]
+test = { path='../test' }

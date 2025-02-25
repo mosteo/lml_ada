@@ -1,4 +1,6 @@
+with Test;
+
 procedure Dev is
 begin
-   null;
+   Test;
 end Dev;

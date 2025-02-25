@@ -24,20 +24,20 @@ private
       Root  : Yeison.Any;
       --  Whatever remains after completion
    end record with
-     Type_Invariant => (if not Stack.Is_Empty then not Root.Is_Valid);
+     Type_Invariant => (if not Stack.Is_Empty then not Root.Has_Value);
 
    -------------------
    -- Current_Value --
    -------------------
 
    function Current_Root (This : Builder) return Yeison.Any
-   is (if This.Root.Is_Valid
+   is (if This.Root.Has_Value
        then This.Root
        else This.Stack.First_Element);
 
    overriding function Make return Builder is (others => <>);
 
-   overriding procedure Append_Impl (This : in out Builder; V : Text);
+   overriding procedure Append_Impl (This : in out Builder; Val : Scalar);
 
    overriding procedure Begin_Map_Impl (This : in out Builder);
 

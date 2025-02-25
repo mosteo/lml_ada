@@ -21,9 +21,9 @@ package body LML.Output is
    -- Write --
    -----------
 
-   procedure Append (This : in out Builder'Class; V : Text) is
+   procedure Append (This : in out Builder'Class; Val : Scalar) is
    begin
-      This.Append_Impl (V);
+      This.Append_Impl (Val);
       This.First := False;
       This.Check_Completion;
    end Append;
@@ -97,9 +97,9 @@ package body LML.Output is
    -- To_Text --
    -------------
 
-   function To_Text (This   : Yeison.Any;
-                     Format : Formats)
-                     return Builder'Class
+   function To_Builder (This   : Yeison.Any;
+                        Format : Formats)
+                        return Builder'Class
    is
 
       Builder : Output.Builder'Class := Output.Factory.Get (Format);
@@ -113,7 +113,7 @@ package body LML.Output is
       begin
          case This.Kind is
             when Yeison.Scalar_Kinds =>
-               Builder.Append (This.Image);
+               Builder.Append (This.As_Scalar);
 
             when Map_Kind =>
                Builder.Begin_Map;
@@ -139,6 +139,6 @@ package body LML.Output is
       To_Text (This);
 
       return Builder;
-   end To_Text;
+   end To_Builder;
 
 end LML.Output;

@@ -2,6 +2,7 @@ with Ada.Wide_Wide_Text_IO; use Ada.Wide_Wide_Text_IO;
 
 with LML.Convert.TOML_JSON;
 with LML.Output.Factory;
+with LML.Output.YAML;
 
 with TOML; use TOML;
 
@@ -11,6 +12,9 @@ procedure Test is
 
    package Yeison renames Yeison_12;
    use Yeison.Operators;
+
+   function "+" (Str : Yeison.Text) return Yeison.Scalar
+     renames Yeison.Scalars.New_Text;
 
    Sample : constant Yeison.Any
      := Yeison.Empty_Map
@@ -26,7 +30,7 @@ procedure Test is
    begin
       Builder.Begin_Map;
       Builder.Insert ("key");
-      Builder.Append ("Stand-alone string");
+      Builder.Append (+"Stand-alone string");
       Builder.End_Map;
    end String_In_Table;
 
@@ -34,9 +38,9 @@ procedure Test is
    begin
       Builder.Begin_Map;
       Builder.Insert ("key1");
-      Builder.Append ("val1");
+      Builder.Append (+"val1");
       Builder.Insert ("key2");
-      Builder.Append ("val2");
+      Builder.Append (+"val2");
       Builder.End_Map;
    end Table;
 
@@ -96,8 +100,8 @@ begin
          Builder.Begin_Map;
          Builder.Insert ("vector");
          Builder.Begin_Vec;
-         Builder.Append ("item1");
-         Builder.Append ("item2");
+         Builder.Append (+"item1");
+         Builder.Append (+"item2");
          Builder.End_Vec;
          Builder.End_Map;
          Report (Builder, "array within table");
@@ -120,18 +124,76 @@ begin
          Builder.Begin_Map;
          Builder.Insert ("vector");
          Builder.Begin_Vec;
-         Builder.Append ("item1");
-         Builder.Append ("item2");
+         Builder.Append (+"item1");
+         Builder.Append (+"item2");
          Builder.End_Vec;
          Builder.End_Map;
          Builder.End_Map;
          Report (Builder, "array within table");
 
-         Report (LML.Output.To_Text (Sample, Format), "yeison to text");
+         Report (LML.Output.To_Builder (Sample, Format), "yeison to text");
 
          --  TOML only allows outputting a table, whereas JSON can output plain
          --  values or anonymous arrays. Thus, following cases can only be
          --  tested on JSON.
+
+         --  Array of arrays
+         Builder := Empty;
+         Builder.Begin_Map;
+         Builder.Insert ("vec");
+         Builder.Begin_Vec;
+         for I in 1 .. 2 loop
+            Builder.Begin_Vec;
+            Builder.Append (+I'Wide_Wide_Image);
+            Builder.Append (+Integer'(I + 1)'Wide_Wide_Image);
+            Builder.End_Vec;
+         end loop;
+         Builder.End_Vec;
+         Builder.End_Map;
+         Report (Builder, "array of arrays within table");
+
+         --  Array of arrays of arrays of maps
+
+         --  For this particular case we show both YAML styles
+         declare
+            First : Boolean := True;
+         begin
+            <<YAML_Showcase>>
+
+            Builder := Empty;
+            if Format in LML.YAML and then not First then
+               LML.Output.YAML.Builder (Builder)
+                 .Set_Style (LML.Output.YAML.Expanded);
+            end if;
+
+            Builder.Begin_Map;
+            Builder.Insert ("vec");
+            Builder.Begin_Vec;
+            for I in 1 .. 2 loop
+               Builder.Begin_Vec;
+               for J in Wide_Wide_Character'('a') .. 'b' loop
+                  Builder.Begin_Vec;
+                  Builder.Begin_Map;
+                  Builder.Insert ("key1");
+                  Builder.Append (+("" & J));
+                  Builder.Insert ("key2");
+                  Builder.Append (+("" & Wide_Wide_Character'Succ (J)));
+                  Builder.End_Map;
+                  Builder.End_Vec;
+               end loop;
+               Builder.End_Vec;
+            end loop;
+            Builder.End_Vec;
+            Builder.End_Map;
+            Report (Builder, "array of arrays of arrays of maps within table");
+
+            if Format in LML.YAML and then First then
+               First := False;
+               goto YAML_Showcase;
+            end if;
+         end;
+
+         ----------------------------------------------------------------------
 
          if Format not in LML.TOML then
             --  Object in anonymous array. Our TOML lib doesn't allow it out of
@@ -144,7 +206,7 @@ begin
 
             --  A plain string value
             Builder := Empty;
-            Builder.Append ("stand-alone string");
+            Builder.Append (+"stand-alone string");
             Report (Builder, "stand-alone string");
 
             --  An empty vector
@@ -152,6 +214,17 @@ begin
             Builder.Begin_Vec;
             Builder.End_Vec;
             Report (Builder, "empty anon vec");
+
+            --  Empty vector within table
+            Builder := Empty;
+            Builder.Begin_Map;
+
+            Builder.Insert ("vec");
+            Builder.Begin_Vec;
+            Builder.End_Vec;
+
+            Builder.End_Map;
+            Report (Builder, "empty vector within table");
          end if;
       end;
    end loop;

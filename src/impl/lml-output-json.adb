@@ -19,7 +19,7 @@ package body LML.Output.JSON is
 
    procedure Ensure_Open (This : Builder) is
    begin
-      if This.Root.Is_Valid then
+      if This.Root.Has_Value then
          raise Constraint_Error with "data structure is already complete";
       end if;
    end Ensure_Open;
@@ -34,7 +34,7 @@ package body LML.Output.JSON is
       if not This.Stack.Is_Empty then
          raise Constraint_Error with "incomplete data structure";
       else
-         return This.Root.Image (Format => Yeison.Impl.JSON, Compact => False);
+         return This.Root.Image (Format => Yeison.Impl.JSON);
       end if;
    end To_Text;
 
@@ -67,9 +67,9 @@ package body LML.Output.JSON is
    -- Append_Impl --
    -----------------
 
-   overriding procedure Append_Impl (This : in out Builder; V : Text) is
+   overriding procedure Append_Impl (This : in out Builder; Val : Scalar) is
    begin
-      This.Append_JSON (Yeison.Make.Str (V));
+      This.Append_JSON (Yeison.Make.Scalar (Val));
    end Append_Impl;
 
    --------------------
@@ -89,7 +89,7 @@ package body LML.Output.JSON is
 
    overriding procedure End_Map_Impl (This : in out Builder) is
    begin
-      if This.Root.Is_Valid then
+      if This.Root.Has_Value then
          raise Program_Error with "Two roots in structure?";
       end if;
 
