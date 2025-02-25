@@ -10,14 +10,17 @@ Supported conversions (from text input to text output):
 
 | In↓ / Out→ | JSON | TOML | YAML |
 |:----------:|:----:|:----:|:----:|
+| **JSON**   |   ✓  |   ✓  |   ✓  |
 | **TOML**   |   ✓  |   ✓  |   ✓  |
 
 Supported typed conversions (types from libraries listed below):
 
 | In↓ / Out→ | TOML | Yeison |
 |:----------:|:----:|:------:|
+| **JSON**   |   ✓  |   ✓    |
 | **TOML**   |   ✓  |   ✓    |
 | **Yeison** |   ✓  |   ✓    |
 
+- JSON: https://github.com/onox/json-ada
 - TOML: https://github.com/pmderodat/ada-toml
 - Yeison: https://github.com/mosteo/yeison
