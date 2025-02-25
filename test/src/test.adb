@@ -235,7 +235,7 @@ begin
    --  JSON -> Yeison import
    declare
       JSON_Text_Sample : constant Text
-        := "[1, 2, 3]";
+        := "{ ""vec"": [1, 2, 3], ""key"": ""val"", ""map"": {""k"":""v""}}";
    begin
       Put_Line ("JSON -> YSON: "
                 & LML.From_Text (JSON_Text_Sample, LML.JSON).Image);

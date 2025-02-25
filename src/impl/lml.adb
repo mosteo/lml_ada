@@ -16,7 +16,7 @@ package body LML is
    begin
       case Format is
          when JSON =>
-            Input.JSON.From_JSON (Input.JSON.From_String (Image), Builder);
+            Output.Build (Input.JSON.From_String (Image), Builder);
          when TOML =>
             Input.TOML.From_TOML (Input.TOML.From_String (Image), Builder);
          when others =>

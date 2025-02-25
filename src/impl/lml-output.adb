@@ -93,6 +93,48 @@ package body LML.Output is
       end return;
    end Pop;
 
+   -----------
+   -- Build --
+   -----------
+
+   procedure Build (This    : Yeison.Any;
+                    Builder : in out Output.Builder'Class)
+   is
+      use all type Yeison.Kinds;
+   begin
+      case This.Kind is
+         when Yeison.Scalar_Kinds =>
+            Builder.Append (This.As_Scalar);
+
+         when Map_Kind =>
+            Builder.Begin_Map;
+
+            for Key of This.Keys loop
+               if Key.Kind /= Str_Kind then
+                  raise Program_Error
+                    with "LML currently only supports string keys";
+               end if;
+
+               Builder.Insert (Key.As_Text);
+               Build (This ((Key with null record)), Builder);
+            end loop;
+
+            Builder.End_Map;
+
+         when Vec_Kind =>
+            Builder.Begin_Vec;
+
+            for I in 1 .. This.Length loop
+               Build (This (Yeison.Make.Int (I)), Builder);
+            end loop;
+
+            Builder.End_Vec;
+
+         when others =>
+            raise Program_Error with "unimplemented";
+      end case;
+   end Build;
+
    -------------
    -- To_Text --
    -------------
@@ -101,44 +143,10 @@ package body LML.Output is
                         Format : Formats)
                         return Builder'Class
    is
-
-      Builder : Output.Builder'Class := Output.Factory.Get (Format);
-
-      -------------
-      -- To_Text --
-      -------------
-
-      procedure To_Text (This : Yeison.Any) is
-         use all type Yeison.Kinds;
-      begin
-         case This.Kind is
-            when Yeison.Scalar_Kinds =>
-               Builder.Append (This.As_Scalar);
-
-            when Map_Kind =>
-               Builder.Begin_Map;
-
-               for Key of This.Keys loop
-                  if Key.Kind /= Str_Kind then
-                     raise Program_Error
-                       with "LML currently only supports string keys";
-                  end if;
-
-                  Builder.Insert (Key.As_Text);
-                  To_Text (This ((Key with null record)));
-               end loop;
-
-               Builder.End_Map;
-
-            when others =>
-               raise Program_Error with "unimplemented";
-         end case;
-      end To_Text;
-
    begin
-      To_Text (This);
-
-      return Builder;
+      return Builder : Output.Builder'Class := Output.Factory.Get (Format) do
+         Build (This, Builder);
+      end return;
    end To_Builder;
 
 end LML.Output;

@@ -36,4 +36,6 @@ package LML with Preelaborate is
                      Format : Formats)
                      return Text;
 
+   --  See LML.Output.Build too
+
 end LML;

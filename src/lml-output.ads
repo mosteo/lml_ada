@@ -26,6 +26,9 @@ package LML.Output with Preelaborate is
 
    --  Other conveniences
 
+   procedure Build (This    : Yeison.Any;
+                    Builder : in out Output.Builder'Class);
+
    function To_Builder (This   : Yeison.Any;
                         Format : Formats)
                         return Builder'Class;
