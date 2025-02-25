@@ -231,4 +231,13 @@ begin
 
    --  Direct TOML -> JSON conversion
    Put_Line ("TOML -> JSON: " & LML.Convert.TOML_JSON.Image (TOML_Sample));
+
+   --  JSON -> Yeison import
+   declare
+      JSON_Text_Sample : constant Text
+        := "[1, 2, 3]";
+   begin
+      Put_Line ("JSON -> YSON: "
+                & LML.From_Text (JSON_Text_Sample, LML.JSON).Image);
+   end;
 end Test;

@@ -89,7 +89,7 @@ package body LML.Input.TOML is
 
    begin
       if not This.Is_Present then
-         raise Constraint_Error with "Input TOML value is empty";
+         raise Constraint_Error with "Input TOML value is null";
       end if;
 
       From_TOML (This);

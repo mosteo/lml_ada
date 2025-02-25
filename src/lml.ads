@@ -30,7 +30,7 @@ package LML with Preelaborate is
    function From_Text (Image  : Text;
                        Format : Formats)
                        return Yeison.Any
-     with Pre => Format in TOML; -- Other formats currently unsupported
+     with Pre => Format in JSON | TOML; -- Other formats currently unsupported
 
    function To_Text (This   : Yeison.Any;
                      Format : Formats)
