@@ -1,7 +1,7 @@
 with LML.Input.TOML;
 with LML.Output.JSON;
 
-package body LML.Convert.TOML_JSON is
+package body LML.Conversions.TOML_JSON is
 
    -----------
    -- Image --
@@ -30,4 +30,4 @@ package body LML.Convert.TOML_JSON is
       return Builder;
    end Build;
 
-end LML.Convert.TOML_JSON;
+end LML.Conversions.TOML_JSON;

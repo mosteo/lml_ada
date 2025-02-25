@@ -72,4 +72,16 @@ package body LML.Input.JSON is
       end case;
    end From_JSON;
 
+   ---------------
+   -- From_JSON --
+   ---------------
+
+   procedure From_JSON (Image   : Text;
+                        Builder : in out Output.Builder'Class)
+   is
+      Parser  : Parsers.Parser := Parsers.Create (Encode (Image));
+   begin
+      From_JSON (Parser.Parse, Builder);
+   end From_JSON;
+
 end LML.Input.JSON;

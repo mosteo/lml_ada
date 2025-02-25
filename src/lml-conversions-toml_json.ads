@@ -1,6 +1,6 @@
 with TOML;
 
-package LML.Convert.TOML_JSON with Preelaborate is
+package LML.Conversions.TOML_JSON with Preelaborate is
 
    subtype TOML_Value is Standard.TOML.TOML_Value;
 
@@ -8,6 +8,6 @@ package LML.Convert.TOML_JSON with Preelaborate is
    --  JSON image of the input TOML value
 
    function Build (Image : Text) return Output.Builder'Class;
-   --  Builder with the JSON representation of Image
+   --  Builder with the JSON representation of TOML Image
 
-end LML.Convert.TOML_JSON;
+end LML.Conversions.TOML_JSON;

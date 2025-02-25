@@ -95,4 +95,15 @@ package body LML.Input.TOML is
       From_TOML (This);
    end From_TOML;
 
+   ---------------
+   -- From_TOML --
+   ---------------
+
+   procedure From_TOML (Image   : Text;
+                        Builder : in out Output.Builder'Class)
+   is
+   begin
+      From_TOML (From_String (Image), Builder);
+   end From_TOML;
+
 end LML.Input.TOML;

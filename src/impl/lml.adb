@@ -1,8 +1,35 @@
 with LML.Input.JSON;
 with LML.Input.TOML;
+with LML.Output.Factory;
 with LML.Output.Yeison;
 
 package body LML is
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (Image : Text;
+                     From,
+                     Into  : Formats)
+                     return Text
+   is
+      type Builder_Proc is access
+        procedure (Image   : Text;
+                   Builder : in out Output.Builder'Class);
+      Builders : constant array (Formats) of Builder_Proc
+        := (JSON => Input.JSON.From_JSON'Access,
+            TOML => Input.TOML.From_TOML'Access,
+            others =>
+              (raise Unsupported_Error with
+                 "Cannot convert from " & From'Image & " into " & Into'Image));
+
+      Builder : Output.Builder'Class := Output.Factory.Get (Into);
+
+   begin
+      Builders (From) (Image, Builder);
+      return Builder.To_Text;
+   end Convert;
 
    ---------------
    -- From_Text --

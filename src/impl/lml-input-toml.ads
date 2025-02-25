@@ -11,4 +11,7 @@ package LML.Input.TOML with Preelaborate is
    procedure From_TOML (This    : TOML_Value;
                         Builder : in out Output.Builder'Class);
 
+   procedure From_TOML (Image   : Text;
+                        Builder : in out Output.Builder'Class);
+
 end LML.Input.TOML;

@@ -1,6 +1,6 @@
 with Ada.Wide_Wide_Text_IO; use Ada.Wide_Wide_Text_IO;
 
-with LML.Convert.TOML_JSON;
+with LML.Conversions.TOML_JSON;
 with LML.Output.Factory;
 with LML.Output.YAML;
 
@@ -230,7 +230,8 @@ begin
    end loop;
 
    --  Direct TOML -> JSON conversion
-   Put_Line ("TOML -> JSON: " & LML.Convert.TOML_JSON.Image (TOML_Sample));
+   Put_Line ("TOML -> JSON: "
+             & LML.Conversions.TOML_JSON.Image (TOML_Sample));
 
    --  JSON -> Yeison import
    declare
