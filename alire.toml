@@ -17,6 +17,7 @@ command = ["alr", "run"]
 
 [[depends-on]]
 ada_toml = "~0.4.0"
+adayaml = "~0.2"
 json = "^6.0.1"
 yeison_12 = "~0.3.1"
 
