@@ -21,13 +21,13 @@ jobs:
 
     - name: Prepare pin
       run: |
-        git clone https://github.com/mosteo/yeison --branch devel
+        git clone https://github.com/mosteo/yeison --branch main
         alr pin yeison_12 --use=yeison/yeison_12
         alr -C test/ pin yeison_12 --use=../yeison/yeison_12
-    
+
     - name: Build library
       run: alr build
 
     - name: Run tests
       run: alr -C test/ run
-    
+

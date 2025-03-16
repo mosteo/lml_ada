@@ -1,0 +1,63 @@
+name: publish
+on:
+  workflow_dispatch:
+
+env:
+  OWNER: mosteo
+  INDEX: test-index
+  TIMEOUT: 300
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: alire-project/setup-alire@v4
+
+    - name: Configure remote index (for the case of test runs)
+      if: ${{env.INDEX}} != '' || ${{env.OWNER}} != ''
+      run: |
+        alr settings --set index.owner ${{env.OWNER}}
+        alr settings --set index.repository_name ${{env.INDEX}}
+
+    - name: Publish
+      shell: bash
+      run: |
+        alr publish --skip-build | tee publish.log
+
+        # Identify PR number from output
+        # In python it would be: pr = re.search(r'/pull/(\d+) for details', p.out).group(1)
+
+        PR=$(grep -oP '/pull/\K\d+(?=  for details)' publish.log)
+        echo "PR created with number: $PR"
+
+        # Check periodically until the PR checks succeed or fail
+
+        waited  = 0
+        timeout = ${TIMEOUT:-300}
+        while true; do
+            sleep 10s
+            waited=$((waited+10))
+            line=$(alr publish --status | grep /$PR)
+            if [[ $line == *Checks_Passed* ]]; then
+                break
+            elif [[ $line == *Checks_Failed* ]]; then
+                echo "Checks failed unexpectedly for PR $PR: $line"
+                echo Please review manually
+                exit 1
+            elif [[ $waited -gt $timeout ]]; then
+                echo "Checks not completed after $timeout seconds for PR $PR"
+                echo Please review manually
+                exit 1
+            else
+                # Wait a bit and retry, but fail after so many time
+                sleep 1
+                waited=$((waited+1))
+            fi
+        done
+
+        # At this point the PR checks have passed and we can request a review
+
+        alr publish --request-review=$PR
