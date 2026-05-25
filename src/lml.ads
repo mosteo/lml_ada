@@ -8,7 +8,10 @@ package LML with Preelaborate is
 
    package Yeison renames Yeison_12;
 
-   type Formats is (JSON, TOML, YAML);
+   type Formats is (JSON,
+                    Pragmas, -- Ada pragmas
+                    TOML,
+                    YAML);
 
    subtype Text is Wide_Wide_String;
 
@@ -17,7 +20,9 @@ package LML with Preelaborate is
                      Into  : Formats)
                      return Text with
      Pre =>
-       (From /= Into and then From in JSON | TOML)
+       (From /= Into
+        and then From in JSON | Pragmas | TOML
+        and then Into not in Pragmas)
        or else raise Unsupported_Error with
          "Cannot convert from " & From'Image & " into " & Into'Image;
 
@@ -36,7 +41,7 @@ package LML with Preelaborate is
 
    --  Yeison can be used as a hub for conversions, if one is not constructing
    --  the data structures from scratch with LML.Input or LML.Output. Check
-   --  LML.Convert.* nonetheless for direct conversions.
+   --  LML.Conversions.* nonetheless for direct conversions.
 
    function From_Text (Image  : Text;
                        Format : Formats)
