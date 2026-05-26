@@ -4,6 +4,8 @@ with LML.Conversions.TOML_JSON;
 with LML.Output.Factory;
 with LML.Output.YAML;
 
+with Test_Pragmas;
+
 with TOML; use TOML;
 
 with Yeison_12;
@@ -60,6 +62,9 @@ begin
    TOML_Sample.Item (2).Set ("key", Create_String ("val"));
 
    for Format in LML.Formats loop
+      if Format in LML.Pragmas then
+         goto Continue;  -- Pragmas is input-only
+      end if;
       declare
          Empty   : constant LML.Output.Builder'Class :=
                      LML.Output.Factory.Get (Format);
@@ -227,6 +232,7 @@ begin
             Report (Builder, "empty vector within table");
          end if;
       end;
+      <<Continue>>
    end loop;
 
    --  Direct TOML -> JSON conversion
@@ -241,4 +247,7 @@ begin
       Put_Line ("JSON -> YSON: "
                 & LML.From_Text (JSON_Text_Sample, LML.JSON).Image);
    end;
+
+   --  Pragma input parser
+   Test_Pragmas.Run;
 end Test;

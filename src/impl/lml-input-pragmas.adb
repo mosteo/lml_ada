@@ -1,3 +1,4 @@
+with Ada.Containers.Indefinite_Ordered_Maps;
 with Ada.Wide_Wide_Characters.Handling;
 
 package body LML.Input.Pragmas is
@@ -18,7 +19,11 @@ package body LML.Input.Pragmas is
 
    package Wide renames Ada.Wide_Wide_Characters.Handling;
 
-   subtype Idx is Positive;
+   subtype Index        is Positive;
+   subtype Index_Or_Nil is Natural;
+   --  Index_Or_Nil uses 0 as the "no such index" sentinel: an empty
+   --  identifier range (Last < First) or an as-yet-unfound delimiter
+   --  position.
 
    HT : constant Wide_Wide_Character := Wide_Wide_Character'Val (9);
    LF : constant Wide_Wide_Character := Wide_Wide_Character'Val (10);
@@ -33,8 +38,16 @@ package body LML.Input.Pragmas is
    --  full Wide_Wide identifier classification adds complexity for no
    --  practical gain here.
 
+   -----------------
+   -- Is_Id_Start --
+   -----------------
+
    function Is_Id_Start (C : Wide_Wide_Character) return Boolean is
      (C in 'A' .. 'Z' | 'a' .. 'z');
+
+   ----------------
+   -- Is_Id_Cont --
+   ----------------
 
    function Is_Id_Cont (C : Wide_Wide_Character) return Boolean is
      (C in 'A' .. 'Z' | 'a' .. 'z' | '0' .. '9' | '_');
@@ -45,9 +58,17 @@ package body LML.Input.Pragmas is
    --  this naturally accepts signed forms (-1, +1.5) without modelling
    --  unary operators.
 
+   -----------------
+   -- Is_Num_Char --
+   -----------------
+
    function Is_Num_Char (C : Wide_Wide_Character) return Boolean is
      (C in '0' .. '9' | '_' | '.' | '+' | '-' | 'e' | 'E');
 
+   --------------
+   -- Equal_CI --
+   --------------
+   --  Case-insensitive comparison
    function Equal_CI (A, B : Text) return Boolean is
    begin
       if A'Length /= B'Length then
@@ -67,24 +88,33 @@ package body LML.Input.Pragmas is
    -- Skip helpers --
    ------------------
 
-   procedure Skip_Whitespace (Image : Text; Pos : in out Idx) is
+   ---------------------
+   -- Skip_Whitespace --
+   ---------------------
+
+   procedure Skip_Whitespace (Image : Text; Pos : in out Index) is
    begin
       while Pos <= Image'Last
-        and then (Image (Pos) = ' '
-                    or else Image (Pos) = HT
-                    or else Image (Pos) = LF
-                    or else Image (Pos) = CR)
+        and then Image (Pos) in ' ' | HT | LF | CR
       loop
          Pos := Pos + 1;
       end loop;
    end Skip_Whitespace;
 
-   function At_Comment (Image : Text; Pos : Idx) return Boolean is
+   ----------------
+   -- At_Comment --
+   ----------------
+
+   function At_Comment (Image : Text; Pos : Index) return Boolean is
      (Pos < Image'Last
         and then Image (Pos) = '-'
         and then Image (Pos + 1) = '-');
 
-   procedure Skip_Line_Comment (Image : Text; Pos : in out Idx) is
+   -----------------------
+   -- Skip_Line_Comment --
+   -----------------------
+
+   procedure Skip_Line_Comment (Image : Text; Pos : in out Index) is
       --  Caller has verified we sit on "--". Stop at LF (not past it);
       --  Skip_Whitespace will consume the newline next.
    begin
@@ -93,8 +123,12 @@ package body LML.Input.Pragmas is
       end loop;
    end Skip_Line_Comment;
 
-   procedure Skip_Trivia (Image : Text; Pos : in out Idx) is
-      Stuck_At : Idx;
+   -----------------
+   -- Skip_Trivia --
+   -----------------
+
+   procedure Skip_Trivia (Image : Text; Pos : in out Index) is
+      Stuck_At : Index;
    begin
       loop
          Stuck_At := Pos;
@@ -106,12 +140,21 @@ package body LML.Input.Pragmas is
       end loop;
    end Skip_Trivia;
 
-   procedure Skip_String_Literal (Image : Text; Pos : in out Idx) is
+   -------------------------
+   -- Skip_String_Literal --
+   -------------------------
+
+   procedure Skip_String_Literal (Image : Text; Pos : in out Index) is
       --  Caller has verified Image (Pos) = '"'. Ada source uses "" as
       --  the escaped double-quote inside string literals.
+      --  We stop at a line break even without a closing '"': Ada string
+      --  literals cannot span lines, so a newline signals a malformed
+      --  literal and we must not swallow pragmas on subsequent lines.
    begin
       Pos := Pos + 1;
-      while Pos <= Image'Last loop
+      while Pos <= Image'Last
+        and then Image (Pos) not in LF | CR
+      loop
          if Image (Pos) = '"' then
             if Pos < Image'Last and then Image (Pos + 1) = '"' then
                Pos := Pos + 2;
@@ -125,7 +168,11 @@ package body LML.Input.Pragmas is
       end loop;
    end Skip_String_Literal;
 
-   procedure Skip_Char_Literal_If_Any (Image : Text; Pos : in out Idx) is
+   ------------------------------
+   -- Skip_Char_Literal_If_Any --
+   ------------------------------
+
+   procedure Skip_Char_Literal_If_Any (Image : Text; Pos : in out Index) is
       --  Heuristic: if we are at ''' and the third char is also ''',
       --  it is a one-character literal. This is enough to keep contents
       --  like '"' or '-' from confusing the scanner without trying to
@@ -145,13 +192,18 @@ package body LML.Input.Pragmas is
    -- Scan helpers --
    ------------------
 
+   ---------------------
+   -- Scan_Identifier --
+   ---------------------
+
    procedure Scan_Identifier (Image : Text;
-                              Pos   : in out Idx;
-                              First : out Idx;
-                              Last  : out Idx)
+                              Pos   : in out Index;
+                              First : out Index;
+                              Last  : out Index_Or_Nil)
    is
-      --  Returns Last < First (empty range) when there is no identifier
-      --  at Pos. Otherwise Pos is advanced just past the identifier.
+      --  Returns Last < First (an empty range) when there is no
+      --  identifier at Pos. Last is Index_Or_Nil so that empty range
+      --  can be expressed as Pos - 1 even when Pos = 1.
    begin
       First := Pos;
       Last  := Pos - 1;
@@ -164,8 +216,12 @@ package body LML.Input.Pragmas is
       Last := Pos - 1;
    end Scan_Identifier;
 
+   -----------------------
+   -- Scan_String_Value --
+   -----------------------
+
    procedure Scan_String_Value (Image : Text;
-                                Pos   : in out Idx;
+                                Pos   : in out Index;
                                 Value : out Yeison.Any;
                                 OK    : out Boolean)
    is
@@ -173,10 +229,10 @@ package body LML.Input.Pragmas is
       --  there are any "" escapes). Then either slice the literal
       --  directly (common case, no escapes) or decode into a buffer
       --  whose worst-case size is the literal's own length.
-      Start      : constant Idx := Pos;
-      Cursor     : Idx;
+      Start      : constant Index := Pos;
+      Cursor     : Index;
       Has_Escape : Boolean := False;
-      End_Quote  : Idx := 0;
+      End_Quote  : Index_Or_Nil := 0;  --  0 = closing quote not yet found
    begin
       OK := False;
       if Pos > Image'Last or else Image (Pos) /= '"' then
@@ -184,7 +240,9 @@ package body LML.Input.Pragmas is
       end if;
 
       Cursor := Pos + 1;
-      while Cursor <= Image'Last loop
+      while Cursor <= Image'Last
+        and then Image (Cursor) not in LF | CR
+      loop
          if Image (Cursor) = '"' then
             if Cursor < Image'Last and then Image (Cursor + 1) = '"' then
                Has_Escape := True;
@@ -207,8 +265,8 @@ package body LML.Input.Pragmas is
       else
          declare
             Buf  : Text (1 .. End_Quote - Start - 1);  -- upper bound
-            Last : Natural := 0;
-            I    : Idx := Start + 1;
+            Last : Index_Or_Nil := 0;
+            I    : Index := Start + 1;
          begin
             while I < End_Quote loop
                Last := Last + 1;
@@ -227,16 +285,21 @@ package body LML.Input.Pragmas is
       OK := True;
    end Scan_String_Value;
 
+   ---------------------
+   -- Scan_Bool_Value --
+   ---------------------
+
    procedure Scan_Bool_Value (Image : Text;
-                              Pos   : in out Idx;
+                              Pos   : in out Index;
                               Value : out Yeison.Any;
                               OK    : out Boolean)
    is
       --  Recognise True / False as Ada identifiers (case-insensitive,
       --  per Ada rules). On a non-boolean identifier, rewind so the
       --  caller can try another value kind.
-      Save        : constant Idx := Pos;
-      First, Last : Idx;
+      Save  : constant Index := Pos;
+      First : Index;
+      Last  : Index_Or_Nil;
    begin
       OK := False;
       Scan_Identifier (Image, Pos, First, Last);
@@ -254,15 +317,19 @@ package body LML.Input.Pragmas is
       end if;
    end Scan_Bool_Value;
 
+   -----------------------
+   -- Scan_Number_Value --
+   -----------------------
+
    procedure Scan_Number_Value (Image : Text;
-                                Pos   : in out Idx;
+                                Pos   : in out Index;
                                 Value : out Yeison.Any;
                                 OK    : out Boolean)
    is
       --  Greedy gobble then defer to 'Wide_Wide_Value (see comment on
       --  Is_Num_Char above for the rationale). On any conversion failure
       --  we restore Pos so the caller's bail/recovery is well-defined.
-      Start : constant Idx := Pos;
+      Start : constant Index := Pos;
    begin
       OK := False;
       while Pos <= Image'Last and then Is_Num_Char (Image (Pos)) loop
@@ -280,7 +347,8 @@ package body LML.Input.Pragmas is
       begin
          if Is_Real then
             Value := Yeison.Make.Real
-              (Long_Long_Float'Wide_Wide_Value (Slice));
+              (Yeison.Reals.New_Real
+                 (Long_Long_Float'Wide_Wide_Value (Slice)));
             OK := True;
          else
             begin
@@ -292,7 +360,8 @@ package body LML.Input.Pragmas is
                   --  An integer-looking literal that overflows
                   --  Long_Long_Integer still has a chance as a float.
                   Value := Yeison.Make.Real
-                    (Long_Long_Float'Wide_Wide_Value (Slice));
+                    (Yeison.Reals.New_Real
+                       (Long_Long_Float'Wide_Wide_Value (Slice)));
                   OK := True;
             end;
          end if;
@@ -302,7 +371,11 @@ package body LML.Input.Pragmas is
       end;
    end Scan_Number_Value;
 
-   procedure Skip_To_Semicolon (Image : Text; Pos : in out Idx) is
+   -----------------------
+   -- Skip_To_Semicolon --
+   -----------------------
+
+   procedure Skip_To_Semicolon (Image : Text; Pos : in out Index) is
       --  Recovery after a failed pragma parse. We must honour strings
       --  and comments so a ';' embedded in either does not derail us.
    begin
@@ -329,19 +402,33 @@ package body LML.Input.Pragmas is
    procedure From_Pragmas (Image   : Text;
                            Builder : in out Output.Builder'Class)
    is
-      use all type Yeison.Kinds;
+      --  We accumulate hits into a plain Ada Ordered_Map (outer) of
+      --  Yeison.Any inner maps, rather than building the outer Yeison.Any
+      --  directly. Reason: Yeison's Variable_Indexing assignment writes
+      --  into the underlying ordered map but not into the parallel
+      --  insertion-order list, so a later traversal would see those
+      --  entries as default-initialised Nil. Building the outer with
+      --  Ada containers and only handing a finished tree to
+      --  LML.Output.Build sidesteps that.
 
-      Acc : Yeison.Any := Yeison.Empty_Map;
-      Pos : Idx := Image'First;
+      use type Yeison.Any;  --  bring "=" into scope for the instance
 
-      --------------
+      package Outer_Maps is new
+        Ada.Containers.Indefinite_Ordered_Maps
+          (Key_Type     => Text,
+           Element_Type => Yeison.Any);
+
+      Acc : Outer_Maps.Map;
+      Pos : Index := Image'First;
+
+      -------------
       -- Has_Key --
-      --------------
-
+      -------------
+      --  TODO: move to Yeison at some point...
       function Has_Key (M : Yeison.Any; K : Text) return Boolean is
-         --  Linear scan of map keys. Fine for the handful of entries we
-         --  realistically deal with here; if this ever needs to scale
-         --  the right fix is to maintain a side dedup set.
+         use all type Yeison.Kinds;
+         --  Linear scan of map keys. The map only ever holds the keys
+         --  of a single pragma, so this stays trivially cheap.
       begin
          if M.Kind /= Map_Kind then
             return False;
@@ -359,28 +446,36 @@ package body LML.Input.Pragmas is
       --------------------
 
       procedure Record_Pragma (Name, Key : Text; Value : Yeison.Any) is
-         --  Look up (or create) the inner map for Name, then insert the
-         --  Key. We take a local copy of the inner map and write it
-         --  back via Variable_Indexing because Yeison's by-value access
-         --  would otherwise discard our changes.
-         Name_Any : constant Yeison.Any := Yeison.Make.Str (Name);
-         Key_Any  : constant Yeison.Any := Yeison.Make.Str (Key);
-         Inner    : Yeison.Any;
+         Key_Any : constant Yeison.Any := Yeison.Make.Str (Key);
+         Cursor  : constant Outer_Maps.Cursor := Acc.Find (Name);
+
+         procedure Insert_Into (Inner : in out Yeison.Any) is
+         begin
+            if Has_Key (Inner, Key) then
+               raise Constraint_Error with
+                 "duplicate pragma key: " & Encode (Name)
+                 & "." & Encode (Key);
+            end if;
+            Inner.Insert (Key_Any, Value);
+         end Insert_Into;
+
       begin
-         if Has_Key (Acc, Name) then
-            Inner := Acc (Name_Any);
+         --  Either add to an existing map or create it for the 1st time
+         if Outer_Maps.Has_Element (Cursor) then
+            declare
+               Inner : Yeison.Any := Outer_Maps.Element (Cursor);
+            begin
+               Insert_Into (Inner);
+               Acc.Replace_Element (Cursor, Inner);
+            end;
          else
-            Inner := Yeison.Empty_Map;
+            declare
+               Inner : Yeison.Any := Yeison.Empty_Map;
+            begin
+               Insert_Into (Inner);
+               Acc.Insert (Name, Inner);
+            end;
          end if;
-
-         if Has_Key (Inner, Key) then
-            raise Constraint_Error with
-              "duplicate pragma key: " & Encode (Name)
-              & "." & Encode (Key);
-         end if;
-
-         Inner.Insert (Key_Any, Value);
-         Acc (Name_Any) := Inner;
       end Record_Pragma;
 
       ----------------------
@@ -391,10 +486,12 @@ package body LML.Input.Pragmas is
          --  Pos is positioned just past the 'pragma' keyword. On any
          --  mismatch we hand off to Skip_To_Semicolon so the outer loop
          --  can keep finding subsequent pragmas.
-         Name_F, Name_L : Idx;
-         Key_F,  Key_L  : Idx;
-         Value          : Yeison.Any;
-         Got_Value      : Boolean;
+         Name_F    : Index;
+         Name_L    : Index_Or_Nil;
+         Key_F     : Index;
+         Key_L     : Index_Or_Nil;
+         Value     : Yeison.Any;
+         Got_Value : Boolean;
       begin
          Skip_Trivia (Image, Pos);
          Scan_Identifier (Image, Pos, Name_F, Name_L);
@@ -465,7 +562,8 @@ package body LML.Input.Pragmas is
                         Value);
       end Try_Parse_Pragma;
 
-      First, Last : Idx;
+      First : Index;
+      Last  : Index_Or_Nil;
    begin
       loop
          Skip_Trivia (Image, Pos);
@@ -501,7 +599,19 @@ package body LML.Input.Pragmas is
          end if;
       end loop;
 
-      Output.Build (Acc, Builder);
+      --  Hand the accumulated tree to the Builder. Building the outer
+      --  map here (rather than incrementally above) means insertion
+      --  order matches the iteration order of Acc (alphabetical), not
+      --  source order. Good enough; revisit if needed.
+      declare
+         Result : Yeison.Any := Yeison.Empty_Map;
+      begin
+         for C in Acc.Iterate loop
+            Result.Insert (Yeison.Make.Str (Outer_Maps.Key (C)),
+                           Outer_Maps.Element (C));
+         end loop;
+         Output.Build (Result, Builder);
+      end;
    end From_Pragmas;
 
 end LML.Input.Pragmas;
