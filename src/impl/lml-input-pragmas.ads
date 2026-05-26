@@ -44,12 +44,16 @@ package LML.Input.Pragmas with Preelaborate is
    pragma Alire_Test (Config => (Timeout     => 11.1,
                                  Should_Fail => True));
 
-   function Extract_Pragmas (Image : Text) return Text;
-
    procedure From_Pragmas (Image   : Text;
-                           --  Strict  : asdf
                            Builder : in out Output.Builder'Class);
-   --  Strict is a list of pragmas that must be parsed successfully or
-   --  otherwise be reported as non-compliant with our limited grammar.
+   --  Image can be a whole Ada file, but the parsing will end at the first
+   --  "procedure"/"function"/"generic" occurrence. Pragmas inside Ada comments
+   --  are ignored. Raises Constraint_Error if the same (pragma_name, key) pair
+   --  appears more than once.
+   --
+   --  TODO: a Strict parameter is planned, to flag pragma names that must be
+   --  parsed successfully (or otherwise be reported as non-compliant with our
+   --  limited grammar). Deferred until the error-reporting channel for it is
+   --  designed.
 
 end LML.Input.Pragmas;
