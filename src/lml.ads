@@ -6,6 +6,13 @@ package LML with Preelaborate is
 
    Unsupported_Error : exception;
 
+   --  Format specific exceptions
+
+   Duplicate_Pragma : exception;
+   --  Raised when the same key appears twice for the same pragma name, e.g.:
+   --  pragma Alire_Test (Timeout, 11.1);
+   --  pragma Alire_Test (Timeout, 22.2);
+
    package Yeison renames Yeison_12;
 
    type Formats is (JSON,

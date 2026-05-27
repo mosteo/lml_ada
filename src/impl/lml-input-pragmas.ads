@@ -44,7 +44,11 @@ package LML.Input.Pragmas with Preelaborate is
    pragma Alire_Test (Config => (Timeout     => 11.1,
                                  Should_Fail => True));
 
-   Duplicate_Pragma : exception;
+   pragma Warnings (On);
+
+   Duplicate_Pragma : exception renames LML.Duplicate_Pragma;
+   --  Since this spec is more or less private, reuse the public one rather
+   --  than defining it here.
 
    procedure From_Pragmas (Image   : Text;
                            Builder : in out Output.Builder'Class);
