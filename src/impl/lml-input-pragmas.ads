@@ -33,6 +33,7 @@ package LML.Input.Pragmas with Preelaborate is
    --  Supported cases
    pragma Alire_Test (Name,       "A test");
    pragma Alire_Test (Should_Fail, True);
+   pragma Alire_Test (Should_Fail); -- No value implies True
    pragma Alire_Test (Timeout,     11.1);
 
    --  Complex unsupported cases (yet?)

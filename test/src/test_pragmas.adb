@@ -63,6 +63,12 @@ package body Test_Pragmas is
       --  Signed numeric literal.
       Show ("signed real", "pragma Alire_Test (Drift, -1.5);");
 
+      --  Valueless form: a key with no value implies Boolean True.
+      Show ("valueless implies true",
+            "pragma Alire_Test (Should_Fail);"             & LF
+            & "pragma Alire_Test (Other, 1);"              & LF
+            & "pragma Alire_Test (Spaced   ) ;");
+
       --  Two pragmas with different names should not collide.
       Show ("two distinct pragma names",
             "pragma Alire_Test (Name, ""A"");"             & LF
