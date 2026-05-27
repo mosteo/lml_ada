@@ -3,6 +3,7 @@ with Ada.Wide_Wide_Text_IO; use Ada.Wide_Wide_Text_IO;
 
 with LML;
 with LML.Input.Pragmas;
+with LML.Input.Pragmas.File_IO;
 with LML.Output.Factory;
 
 package body Test_Pragmas is
@@ -110,6 +111,18 @@ package body Test_Pragmas is
             Put_Line ("got expected Duplicate_Pragma: "
                       & LML.Decode
                         (Ada.Exceptions.Exception_Message (E)));
+      end;
+
+      --  File I/O: read a static fixture and verify the same pragmas
+      --  land in the output (comments and post-unit pragmas excluded).
+      declare
+         Builder : LML.Output.Builder'Class :=
+           LML.Output.Factory.Get (LML.JSON);
+      begin
+         LML.Input.Pragmas.File_IO.From_File
+           ("data/pragma_sample.ada", Builder);
+         Put_Line ("*** From_File ***");
+         Put_Line (Builder.To_Text);
       end;
    end Run;
 
