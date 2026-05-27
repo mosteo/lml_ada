@@ -516,36 +516,42 @@ package body LML.Input.Pragmas is
             return;
          end if;
 
-         if not Consume (',') then
+         Skip_Trivia (Image, Pos);
+         if At_Char (Image, Pos, ')') then
+            --  Valueless form `pragma X (Key);` implies True.
+            Pos := Pos + 1;
+            Value     := Yeison.Make.Bool (True);
+            Got_Value := True;
+         elsif not Consume (',') then
             --  Catches the named-form `Name => "..."` and any other
             --  shape we do not handle.
             Skip_To_Semicolon (Image, Pos);
             return;
-         end if;
-
-         Skip_Trivia (Image, Pos);
-         --  Discriminate the value kind by its first character. Each
-         --  Scan_*_Value restores Pos on failure so we cannot end up
-         --  half-consuming a value.
-         if Pos > Image'Last then
-            Skip_To_Semicolon (Image, Pos);
-            return;
-         elsif Image (Pos) = '"' then
-            Scan_String_Value (Image, Pos, Value, Got_Value);
-         elsif Is_Id_Start (Image (Pos)) then
-            Scan_Bool_Value (Image, Pos, Value, Got_Value);
          else
-            Scan_Number_Value (Image, Pos, Value, Got_Value);
-         end if;
+            Skip_Trivia (Image, Pos);
+            --  Discriminate the value kind by its first character. Each
+            --  Scan_*_Value restores Pos on failure so we cannot end up
+            --  half-consuming a value.
+            if Pos > Image'Last then
+               Skip_To_Semicolon (Image, Pos);
+               return;
+            elsif Image (Pos) = '"' then
+               Scan_String_Value (Image, Pos, Value, Got_Value);
+            elsif Is_Id_Start (Image (Pos)) then
+               Scan_Bool_Value (Image, Pos, Value, Got_Value);
+            else
+               Scan_Number_Value (Image, Pos, Value, Got_Value);
+            end if;
 
-         if not Got_Value then
-            Skip_To_Semicolon (Image, Pos);
-            return;
-         end if;
+            if not Got_Value then
+               Skip_To_Semicolon (Image, Pos);
+               return;
+            end if;
 
-         if not Consume (')') then
-            Skip_To_Semicolon (Image, Pos);
-            return;
+            if not Consume (')') then
+               Skip_To_Semicolon (Image, Pos);
+               return;
+            end if;
          end if;
 
          if not Consume (';') then
