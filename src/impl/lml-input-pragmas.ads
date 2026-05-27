@@ -44,11 +44,13 @@ package LML.Input.Pragmas with Preelaborate is
    pragma Alire_Test (Config => (Timeout     => 11.1,
                                  Should_Fail => True));
 
+   Duplicate_Pragma : exception;
+
    procedure From_Pragmas (Image   : Text;
                            Builder : in out Output.Builder'Class);
    --  Image can be a whole Ada file, but the parsing will end at the first
    --  "procedure"/"function"/"generic" occurrence. Pragmas inside Ada comments
-   --  are ignored. Raises Constraint_Error if the same (pragma_name, key) pair
+   --  are ignored. Raises Duplicate_Pragma if the same (pragma_name, key) pair
    --  appears more than once.
    --
    --  TODO: a Strict parameter is planned, to flag pragma names that must be

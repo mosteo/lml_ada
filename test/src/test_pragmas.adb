@@ -92,7 +92,7 @@ package body Test_Pragmas is
             & "  , ""annotated""" & LF
             & "  );");
 
-      --  Duplicate (name, key) must raise Constraint_Error.
+      --  Duplicate (name, key) must raise Duplicate_Pragma.
       declare
          Builder : LML.Output.Builder'Class :=
            LML.Output.Factory.Get (LML.JSON);
@@ -105,9 +105,9 @@ package body Test_Pragmas is
          Put_Line ("FAIL: no exception was raised");
          Put_Line (Builder.To_Text);
       exception
-         when E : Constraint_Error =>
+         when E : LML.Input.Pragmas.Duplicate_Pragma =>
             Put_Line ("*** duplicate key ***");
-            Put_Line ("got expected Constraint_Error: "
+            Put_Line ("got expected Duplicate_Pragma: "
                       & LML.Decode
                         (Ada.Exceptions.Exception_Message (E)));
       end;
