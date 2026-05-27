@@ -495,7 +495,7 @@ package body LML.Input.Pragmas is
          Key_F     : Index;
          Key_L     : Index_Or_Nil;
          Value     : Yeison.Any;
-         Got_Value : Boolean;
+         Got_Value : Boolean := False;
       begin
          Skip_Trivia (Image, Pos);
          Scan_Identifier (Image, Pos, Name_F, Name_L);
@@ -522,12 +522,19 @@ package body LML.Input.Pragmas is
             Pos := Pos + 1;
             Value     := Yeison.Make.Nil;
             Got_Value := True;
+         elsif Pos + 1 <= Image'Last
+           and then Image (Pos) = '='
+           and then Image (Pos + 1) = '>'
+         then
+            --  Named form `pragma X (Key => Value);` is accepted as
+            --  equivalent to the positional `(Key, Value)` form.
+            Pos := Pos + 2;
          elsif not Consume (',') then
-            --  Catches the named-form `Name => "..."` and any other
-            --  shape we do not handle.
             Skip_To_Semicolon (Image, Pos);
             return;
-         else
+         end if;
+
+         if not Got_Value then
             Skip_Trivia (Image, Pos);
             --  Discriminate the value kind by its first character. Each
             --  Scan_*_Value restores Pos on failure so we cannot end up

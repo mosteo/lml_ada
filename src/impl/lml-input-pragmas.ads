@@ -33,11 +33,13 @@ package LML.Input.Pragmas with Preelaborate is
    --  Supported cases
    pragma Alire_Test (Name,       "A test");
    pragma Alire_Test (Should_Fail, True);
-   pragma Alire_Test (Should_Fail); -- No value yields Nil
+   pragma Alire_Test (Should_Fail); -- No value yields Nil (note:
+   --  currently the bundled Builders cannot emit Nil and will raise
+   --  Program_Error during output until Nil rendering is added).
    pragma Alire_Test (Timeout,     11.1);
+   pragma Alire_Test (Name => "A test"); -- Named form accepted
 
    --  Complex unsupported cases (yet?)
-   pragma Alire_Test (Name => "A test");
    pragma Alire_Test (Timeout,  1.0 * 60.0);
    pragma Alire_Test (Whatever, "asdf" & "qwer");
    pragma Alire_Test (Config, (Timeout,     11.1),

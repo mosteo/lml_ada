@@ -51,17 +51,24 @@ package body Test_Pragmas is
             & "begin null; end P;"                         & LF
             & "pragma Alire_Test (After_Unit, True);");
 
-      --  Mixed shapes: only the simple positional ones should land
-      --  in the output.
+      --  Mixed shapes: simple positional + simple named land in the
+      --  output; expression-valued ones (multiplication, concatenation)
+      --  are silently dropped.
       Show ("mixed supported and unsupported",
             "pragma Alire_Test (Name, ""ok"");"            & LF
-            & "pragma Alire_Test (Name => ""named"");"     & LF
+            & "pragma Alire_Test (Named => ""named"");"    & LF
             & "pragma Alire_Test (Expr, 1.0 * 60.0);"      & LF
             & "pragma Alire_Test (Cat,  ""a"" & ""b"");"   & LF
             & "pragma Alire_Test (Should_Fail, False);");
 
       --  Signed numeric literal.
       Show ("signed real", "pragma Alire_Test (Drift, -1.5);");
+
+      --  Named (=>) form is accepted as equivalent to the positional one.
+      Show ("named form",
+            "pragma Alire_Test (Name => ""named"");"       & LF
+            & "pragma Alire_Test (Count => 7);"            & LF
+            & "pragma Alire_Test (Flag  =>  False);");
 
       --  Valueless form: a key with no value yields Nil. LML.Output.Build
       --  does not yet handle Nil_Kind (falls into the "others" branch and
