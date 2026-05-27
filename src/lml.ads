@@ -13,6 +13,11 @@ package LML with Preelaborate is
                     TOML,
                     YAML);
 
+   subtype Supported_Inputs is Formats range JSON .. TOML;
+
+   subtype Supported_Outputs is Formats with
+     Static_Predicate => Supported_Outputs /= Pragmas;
+
    subtype Text is Wide_Wide_String;
 
    function Convert (Image : Text;
@@ -21,8 +26,8 @@ package LML with Preelaborate is
                      return Text with
      Pre =>
        (From /= Into
-        and then From in JSON | Pragmas | TOML
-        and then Into not in Pragmas)
+        and then From in Supported_Inputs
+        and then Into in Supported_Outputs)
        or else raise Unsupported_Error with
          "Cannot convert from " & From'Image & " into " & Into'Image;
 
@@ -46,7 +51,7 @@ package LML with Preelaborate is
    function From_Text (Image  : Text;
                        Format : Formats)
                        return Yeison.Any
-     with Pre => Format in JSON | TOML; -- Other formats currently unsupported
+     with Pre => Format in Supported_Inputs;
 
    function To_Text (This   : Yeison.Any;
                      Format : Formats)
