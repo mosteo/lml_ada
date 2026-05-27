@@ -6,9 +6,24 @@ package LML with Preelaborate is
 
    Unsupported_Error : exception;
 
+   --  Format specific exceptions
+
+   Duplicate_Pragma : exception;
+   --  Raised when the same key appears twice for the same pragma name, e.g.:
+   --  pragma Alire_Test (Timeout, 11.1);
+   --  pragma Alire_Test (Timeout, 22.2);
+
    package Yeison renames Yeison_12;
 
-   type Formats is (JSON, TOML, YAML);
+   type Formats is (JSON,
+                    Pragmas, -- Ada pragmas
+                    TOML,
+                    YAML);
+
+   subtype Supported_Inputs is Formats range JSON .. TOML;
+
+   subtype Supported_Outputs is Formats with
+     Static_Predicate => Supported_Outputs /= Pragmas;
 
    subtype Text is Wide_Wide_String;
 
@@ -17,7 +32,9 @@ package LML with Preelaborate is
                      Into  : Formats)
                      return Text with
      Pre =>
-       (From /= Into and then From in JSON | TOML)
+       (From /= Into
+        and then From in Supported_Inputs
+        and then Into in Supported_Outputs)
        or else raise Unsupported_Error with
          "Cannot convert from " & From'Image & " into " & Into'Image;
 
@@ -36,12 +53,12 @@ package LML with Preelaborate is
 
    --  Yeison can be used as a hub for conversions, if one is not constructing
    --  the data structures from scratch with LML.Input or LML.Output. Check
-   --  LML.Convert.* nonetheless for direct conversions.
+   --  LML.Conversions.* nonetheless for direct conversions.
 
    function From_Text (Image  : Text;
                        Format : Formats)
                        return Yeison.Any
-     with Pre => Format in JSON | TOML; -- Other formats currently unsupported
+     with Pre => Format in Supported_Inputs;
 
    function To_Text (This   : Yeison.Any;
                      Format : Formats)
