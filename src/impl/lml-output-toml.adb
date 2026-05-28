@@ -89,6 +89,17 @@ package body LML.Output.TOML is
         );
    end Append_Impl;
 
+   ---------------------
+   -- Append_Nil_Impl --
+   ---------------------
+
+   overriding procedure Append_Nil_Impl (This : in out Builder) is
+      pragma Unreferenced (This);
+   begin
+      raise LML.Unsupported_Error with
+        "TOML does not support null values";
+   end Append_Nil_Impl;
+
    --------------------
    -- Begin_Map_Impl --
    --------------------

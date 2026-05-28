@@ -120,6 +120,24 @@ package body LML.Output.YAML is
       end case;
    end Append_Scalar;
 
+   ---------------------
+   -- Append_Nil_Impl --
+   ---------------------
+
+   overriding procedure Append_Nil_Impl (This : in out Builder) is
+   begin
+      case This.Stack.Last_Element is
+         when Root =>
+            This.Append ("~");
+         when Map =>
+            This.Append (" ~");
+         when List =>
+            This.Array_Marker;
+            This.Append ("~");
+      end case;
+      This.New_Line;
+   end Append_Nil_Impl;
+
    -----------------
    -- Append_Impl --
    -----------------
