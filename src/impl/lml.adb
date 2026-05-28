@@ -15,22 +15,17 @@ package body LML is
                      Into  : Formats)
                      return Text
    is
-      type Builder_Proc is access
-        procedure (Image   : Text;
-                   Builder : in out Output.Builder'Class);
-      Builders : constant array (Formats) of Builder_Proc :=
-        (JSON    => Input.JSON.From_JSON'Access,
-         Pragmas => Input.Pragmas.From_Pragmas'Access,
-         TOML    => Input.TOML.From_TOML'Access,
-         others  =>
-           (raise Unsupported_Error
-              with
-                "Cannot convert from " & From'Image & " into " & Into'Image));
-
       Builder : Output.Builder'Class := Output.Factory.Get (Into);
-
    begin
-      Builders (From) (Image, Builder);
+      case From is
+         when JSON    => Input.JSON.From_JSON (Image, Builder);
+         when Pragmas => Input.Pragmas.From_Pragmas (Image, Builder);
+         when TOML    => Input.TOML.From_TOML (Image, Builder);
+         when others  =>
+            raise Unsupported_Error
+              with "Cannot convert from " & From'Image
+                   & " into " & Into'Image;
+      end case;
       return Builder.To_Text;
    end Convert;
 

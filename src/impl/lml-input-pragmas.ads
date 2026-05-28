@@ -1,4 +1,7 @@
+with LML.Options;
 with LML.Output;
+
+with Yeison_12;
 
 package LML.Input.Pragmas with Preelaborate is
 
@@ -31,6 +34,8 @@ package LML.Input.Pragmas with Preelaborate is
    --
    --  pragma Alire_Test (Config, (Timeout, 11.1), (Should_Fail, True));
 
+   package Yeison renames Yeison_12;
+
    pragma Warnings (Off, "unrecognized pragma");
 
    --  Supported cases
@@ -57,15 +62,14 @@ package LML.Input.Pragmas with Preelaborate is
    --  than defining it here.
 
    procedure From_Pragmas (Image   : Text;
-                           Builder : in out Output.Builder'Class);
+                           Builder : in out Output.Builder'Class;
+                           Options : LML.Options.Any'Class :=
+                             LML.Options.No_Options);
    --  Image can be a whole Ada file, but the parsing will end at the first
    --  "procedure"/"function"/"generic" occurrence. Pragmas inside Ada comments
    --  are ignored. Raises Duplicate_Pragma if the same (pragma_name, key) pair
-   --  appears more than once.
-   --
-   --  TODO: a Strict parameter is planned, to flag pragma names that must be
-   --  parsed successfully (or otherwise be reported as non-compliant with our
-   --  limited grammar). Deferred until the error-reporting channel for it is
-   --  designed.
+   --  appears more than once. When Options is LML.Options.Pragmas.Input_Options,
+   --  pragma names listed in Options.Strict must parse successfully or
+   --  Invalid_Pragma_Syntax is raised.
 
 end LML.Input.Pragmas;

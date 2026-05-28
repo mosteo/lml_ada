@@ -8,7 +8,9 @@ package body LML.Input.Pragmas.File_IO is
    ---------------
 
    procedure From_File (Path    : String;
-                        Builder : in out Output.Builder'Class)
+                        Builder : in out Output.Builder'Class;
+                        Options : LML.Options.Any'Class :=
+                          LML.Options.No_Options)
    is
       use Ada.Strings.Wide_Wide_Unbounded;
       use Ada.Wide_Wide_Text_IO;
@@ -23,7 +25,7 @@ package body LML.Input.Pragmas.File_IO is
          Append (Buffer, LF);
       end loop;
       Close (File);
-      From_Pragmas (To_Wide_Wide_String (Buffer), Builder);
+      From_Pragmas (To_Wide_Wide_String (Buffer), Builder, Options);
    end From_File;
 
 end LML.Input.Pragmas.File_IO;

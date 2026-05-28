@@ -1,5 +1,6 @@
 with JSON.Types;
 
+with LML.Options;
 with LML.Output;
 
 with Yeison_12;
@@ -22,6 +23,8 @@ package LML.Input.JSON with Preelaborate is
                         Builder : in out Output.Builder'Class);
 
    procedure From_JSON (Image   : Text;
-                        Builder : in out Output.Builder'Class);
+                        Builder : in out Output.Builder'Class;
+                        Options : LML.Options.Any'Class :=
+                          LML.Options.No_Options);
 
 end LML.Input.JSON;

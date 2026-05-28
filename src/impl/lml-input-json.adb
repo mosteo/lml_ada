@@ -77,8 +77,11 @@ package body LML.Input.JSON is
    ---------------
 
    procedure From_JSON (Image   : Text;
-                        Builder : in out Output.Builder'Class)
+                        Builder : in out Output.Builder'Class;
+                        Options : LML.Options.Any'Class :=
+                          LML.Options.No_Options)
    is
+      pragma Unreferenced (Options);
       Parser  : Parsers.Parser := Parsers.Create (Encode (Image));
    begin
       From_JSON (Parser.Parse, Builder);

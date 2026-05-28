@@ -1,3 +1,4 @@
+with LML.Options;
 with LML.Output;
 
 with TOML;
@@ -12,6 +13,8 @@ package LML.Input.TOML with Preelaborate is
                         Builder : in out Output.Builder'Class);
 
    procedure From_TOML (Image   : Text;
-                        Builder : in out Output.Builder'Class);
+                        Builder : in out Output.Builder'Class;
+                        Options : LML.Options.Any'Class :=
+                          LML.Options.No_Options);
 
 end LML.Input.TOML;

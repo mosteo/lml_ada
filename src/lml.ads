@@ -13,6 +13,12 @@ package LML with Preelaborate is
    --  pragma Alire_Test (Timeout, 11.1);
    --  pragma Alire_Test (Timeout, 22.2);
 
+   Invalid_Pragma_Syntax : exception;
+   --  Raised when a pragma is expected to be parsed successfully but fails to do so,
+   --  e.g.:
+   --  pragma Alire_Test (Timeout, 1.0 * 60.0);
+   --  pragma Alire_Test (Config, (Timeout, 11.1), (Should_Fail, True));
+
    package Yeison renames Yeison_12;
 
    type Formats is (JSON,
