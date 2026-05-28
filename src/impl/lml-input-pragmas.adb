@@ -518,9 +518,9 @@ package body LML.Input.Pragmas is
 
          Skip_Trivia (Image, Pos);
          if At_Char (Image, Pos, ')') then
-            --  Valueless form `pragma X (Key);` implies True.
+            --  Valueless form `pragma X (Key);` yields Nil.
             Pos := Pos + 1;
-            Value     := Yeison.Make.Bool (True);
+            Value     := Yeison.Make.Nil;
             Got_Value := True;
          elsif not Consume (',') then
             --  Catches the named-form `Name => "..."` and any other
