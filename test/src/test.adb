@@ -239,8 +239,8 @@ begin
             Report (Builder, "nil standalone");
          end if;
 
-         --  Nil as a map value (TOML raises Unsupported_Error; any
-         --  other format raising would be a bug, so we re-raise).
+         --  Nil as a map value. Formats with Supports_Nil = False
+         --  must raise Unsupported_Error; the rest must succeed.
          begin
             Builder := Empty;
             Builder.Begin_Map;
@@ -248,9 +248,13 @@ begin
             Builder.Append_Nil;
             Builder.End_Map;
             Report (Builder, "nil as map value");
+            if not LML.Supports_Nil (Format) then
+               Put_Line ("FAIL: expected Unsupported_Error for "
+                         & Format'Wide_Wide_Image);
+            end if;
          exception
             when E : LML.Unsupported_Error =>
-               if Format not in LML.TOML then
+               if LML.Supports_Nil (Format) then
                   raise;
                end if;
                Put_Line ("*** nil as map value (unsupported) ***");
@@ -258,8 +262,7 @@ begin
                            (Ada.Exceptions.Exception_Message (E)));
          end;
 
-         --  Nil inside a vector (TOML raises Unsupported_Error; any
-         --  other format raising would be a bug, so we re-raise).
+         --  Nil inside a vector. Same Supports_Nil contract as above.
          begin
             Builder := Empty;
             Builder.Begin_Map;
@@ -271,9 +274,13 @@ begin
             Builder.End_Vec;
             Builder.End_Map;
             Report (Builder, "nil in vector");
+            if not LML.Supports_Nil (Format) then
+               Put_Line ("FAIL: expected Unsupported_Error for "
+                         & Format'Wide_Wide_Image);
+            end if;
          exception
             when E : LML.Unsupported_Error =>
-               if Format not in LML.TOML then
+               if LML.Supports_Nil (Format) then
                   raise;
                end if;
                Put_Line ("*** nil in vector (unsupported) ***");
