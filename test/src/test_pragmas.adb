@@ -5,6 +5,7 @@ with LML;
 with LML.Input.Pragmas;
 with LML.Input.Pragmas.File_IO;
 with LML.Output.Factory;
+with LML.Options.Pragmas;
 
 package body Test_Pragmas is
 
@@ -139,6 +140,37 @@ package body Test_Pragmas is
          when E : LML.Input.Pragmas.Duplicate_Pragma =>
             Put_Line ("*** duplicate key ***");
             Put_Line ("got expected Duplicate_Pragma: "
+                      & LML.Decode
+                        (Ada.Exceptions.Exception_Message (E)));
+      end;
+
+      --  Strict mode: a well-formed strict pragma parses normally.
+      declare
+         Builder : LML.Output.Builder'Class :=
+           LML.Output.Factory.Get (LML.JSON);
+      begin
+         LML.Input.Pragmas.From_Pragmas
+           ("pragma Alire_Test (Name, ""strict_ok"");",
+            Builder, LML.Options.Pragmas.Strict_On ("Alire_Test"));
+         Put_Line ("*** strict (well-formed) ***");
+         Put_Line (Builder.To_Text);
+      end;
+
+      --  Strict mode: a malformed strict pragma raises Invalid_Pragma_Syntax.
+      declare
+         Builder : LML.Output.Builder'Class :=
+           LML.Output.Factory.Get (LML.JSON);
+      begin
+         LML.Input.Pragmas.From_Pragmas
+           ("pragma Alire_Test (Timeout, 1.0 * 60.0);",
+            Builder, LML.Options.Pragmas.Strict_On ("Alire_Test"));
+         Put_Line ("*** strict (malformed) (expected to RAISE) ***");
+         Put_Line ("FAIL: no exception was raised");
+         Put_Line (Builder.To_Text);
+      exception
+         when E : LML.Invalid_Pragma_Syntax =>
+            Put_Line ("*** strict (malformed) ***");
+            Put_Line ("got expected Invalid_Pragma_Syntax: "
                       & LML.Decode
                         (Ada.Exceptions.Exception_Message (E)));
       end;

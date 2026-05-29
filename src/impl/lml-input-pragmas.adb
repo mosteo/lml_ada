@@ -1,5 +1,8 @@
 with Ada.Containers.Indefinite_Ordered_Maps;
+with Ada.Tags;
 with Ada.Wide_Wide_Characters.Handling;
+
+with LML.Options.Pragmas;
 
 package body LML.Input.Pragmas is
 
@@ -427,8 +430,19 @@ package body LML.Input.Pragmas is
    ------------------
 
    procedure From_Pragmas (Image   : Text;
-                           Builder : in out Output.Builder'Class)
+                           Builder : in out Output.Builder'Class;
+                           Options : LML.Options.Any'Class :=
+                             LML.Options.No_Options)
    is
+      use LML.Options.Pragmas;
+      Strict : constant Yeison.Vec :=
+        (if Options in LML.Options.Default_No_Options'Class
+         then Yeison.Empty_Vec
+         elsif Options in Input_Options'Class
+         then Input_Options (Options).Strict
+         else raise Program_Error with
+           "unexpected Options type for From_Pragmas: "
+           & Ada.Tags.External_Tag (Options'Tag));
       use type Yeison.Any;  --  brings "=" into scope for Inner_Maps
 
       package Inner_Maps is new
@@ -496,6 +510,19 @@ package body LML.Input.Pragmas is
          Key_L     : Index_Or_Nil;
          Value     : Yeison.Any;
          Got_Value : Boolean := False;
+         Is_Strict : Boolean := False;
+
+         procedure Bail is
+            --  On a strict pragma, raise instead of silently skipping.
+         begin
+            if Is_Strict then
+               raise LML.Invalid_Pragma_Syntax with
+                 "failed to parse strict pragma: "
+                 & Encode (Image (Name_F .. Name_L));
+            end if;
+            Skip_To_Semicolon (Image, Pos);
+         end Bail;
+
       begin
          Skip_Trivia (Image, Pos);
          Scan_Identifier (Image, Pos, Name_F, Name_L);
@@ -504,15 +531,26 @@ package body LML.Input.Pragmas is
             return;
          end if;
 
+         --  Determine whether this pragma name is in the Strict list.
+         for I in 1 .. Strict.Length loop
+            if Same_Word (Image (Name_F .. Name_L),
+                          Strict (Yeison.Make.Int
+                            (Long_Long_Integer (I))).As_Text)
+            then
+               Is_Strict := True;
+               exit;
+            end if;
+         end loop;
+
          if not Consume ('(') then
-            Skip_To_Semicolon (Image, Pos);
+            Bail;
             return;
          end if;
 
          Skip_Trivia (Image, Pos);
          Scan_Identifier (Image, Pos, Key_F, Key_L);
          if Key_L < Key_F then
-            Skip_To_Semicolon (Image, Pos);
+            Bail;
             return;
          end if;
 
@@ -530,7 +568,8 @@ package body LML.Input.Pragmas is
             --  equivalent to the positional `(Key, Value)` form.
             Pos := Pos + 2;
          elsif not Consume (',') then
-            Skip_To_Semicolon (Image, Pos);
+            --  Catches any other shape we do not handle.
+            Bail;
             return;
          end if;
 
@@ -540,7 +579,7 @@ package body LML.Input.Pragmas is
             --  Scan_*_Value restores Pos on failure so we cannot end up
             --  half-consuming a value.
             if Pos > Image'Last then
-               Skip_To_Semicolon (Image, Pos);
+               Bail;
                return;
             elsif Image (Pos) = '"' then
                Scan_String_Value (Image, Pos, Value, Got_Value);
@@ -551,18 +590,18 @@ package body LML.Input.Pragmas is
             end if;
 
             if not Got_Value then
-               Skip_To_Semicolon (Image, Pos);
+               Bail;
                return;
             end if;
 
             if not Consume (')') then
-               Skip_To_Semicolon (Image, Pos);
+               Bail;
                return;
             end if;
          end if;
 
          if not Consume (';') then
-            Skip_To_Semicolon (Image, Pos);
+            Bail;
             return;
          end if;
 

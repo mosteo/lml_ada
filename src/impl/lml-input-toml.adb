@@ -100,8 +100,11 @@ package body LML.Input.TOML is
    ---------------
 
    procedure From_TOML (Image   : Text;
-                        Builder : in out Output.Builder'Class)
+                        Builder : in out Output.Builder'Class;
+                        Options : LML.Options.Any'Class :=
+                          LML.Options.No_Options)
    is
+      pragma Unreferenced (Options);
    begin
       From_TOML (From_String (Image), Builder);
    end From_TOML;
