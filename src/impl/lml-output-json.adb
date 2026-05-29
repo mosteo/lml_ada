@@ -34,7 +34,7 @@ package body LML.Output.JSON is
       if not This.Stack.Is_Empty then
          raise Constraint_Error with "incomplete data structure";
       else
-         return This.Root.Image (Format => Yeison.Impl.JSON);
+         return This.Root.Image (Format => Yeison.JSON);
       end if;
    end To_Text;
 
@@ -57,7 +57,7 @@ package body LML.Output.JSON is
                raise Program_Error
                  with "cannot append, parent is not a collection";
          end case;
-      elsif V.Kind not in Yeison.Impl.Composite_Kinds then
+      elsif V.Kind not in Yeison.Composite_Kinds then
          --  A single value that is in itself the data structure
          This.Root := V;
       end if;

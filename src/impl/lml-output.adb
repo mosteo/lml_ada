@@ -130,7 +130,7 @@ package body LML.Output is
                end if;
 
                Builder.Insert (Key.As_Text);
-               Build (This ((Key with null record)), Builder);
+               Build (This (Encode (Key.As_Text)), Builder);
             end loop;
 
             Builder.End_Map;

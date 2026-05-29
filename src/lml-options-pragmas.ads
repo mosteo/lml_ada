@@ -15,7 +15,8 @@ package LML.Options.Pragmas with Preelaborate is
    --  Return options with the given pragma name added to Strict, as a
    --  convenience for the common case of a single strict pragma.
 
-   No_Input_Options : constant Input_Options :=
+   function No_Input_Options return Input_Options is
      (Any with Strict => Yeison.Empty_Vec);
+   --  Function to remain preelaborable
 
 end LML.Options.Pragmas;
