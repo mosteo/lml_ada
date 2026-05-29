@@ -434,7 +434,6 @@ package body LML.Input.Pragmas is
                            Options : LML.Options.Any'Class :=
                              LML.Options.No_Options)
    is
-      use Ada.Tags;
       use LML.Options.Pragmas;
       Strict : constant Yeison.Vec :=
         (if Options in LML.Options.Default_No_Options'Class
@@ -443,7 +442,7 @@ package body LML.Input.Pragmas is
          then Input_Options (Options).Strict
          else raise Program_Error with
            "unexpected Options type for From_Pragmas: "
-           & Expanded_Name (Options'Tag));
+           & Ada.Tags.External_Tag (Options'Tag));
       use type Yeison.Any;  --  brings "=" into scope for Inner_Maps
 
       package Inner_Maps is new
