@@ -239,7 +239,8 @@ begin
             Report (Builder, "nil standalone");
          end if;
 
-         --  Nil as a map value (TOML raises Unsupported_Error)
+         --  Nil as a map value (TOML raises Unsupported_Error; any
+         --  other format raising would be a bug, so we re-raise).
          begin
             Builder := Empty;
             Builder.Begin_Map;
@@ -249,12 +250,16 @@ begin
             Report (Builder, "nil as map value");
          exception
             when E : LML.Unsupported_Error =>
+               if Format not in LML.TOML then
+                  raise;
+               end if;
                Put_Line ("*** nil as map value (unsupported) ***");
                Put_Line (LML.Decode
                            (Ada.Exceptions.Exception_Message (E)));
          end;
 
-         --  Nil inside a vector (TOML raises Unsupported_Error)
+         --  Nil inside a vector (TOML raises Unsupported_Error; any
+         --  other format raising would be a bug, so we re-raise).
          begin
             Builder := Empty;
             Builder.Begin_Map;
@@ -268,6 +273,9 @@ begin
             Report (Builder, "nil in vector");
          exception
             when E : LML.Unsupported_Error =>
+               if Format not in LML.TOML then
+                  raise;
+               end if;
                Put_Line ("*** nil in vector (unsupported) ***");
                Put_Line (LML.Decode
                            (Ada.Exceptions.Exception_Message (E)));
