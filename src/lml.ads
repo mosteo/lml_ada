@@ -28,6 +28,10 @@ package LML with Preelaborate is
 
    subtype Supported_Inputs is Formats range JSON .. TOML;
 
+   Supports_Nil : constant array (Formats) of Boolean :=
+                    (TOML => False,
+                     others => True);
+
    subtype Supported_Outputs is Formats with
      Static_Predicate => Supported_Outputs /= Pragmas;
 

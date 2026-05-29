@@ -39,6 +39,8 @@ private
 
    overriding procedure Append_Impl (This : in out Builder; Val : Scalar);
 
+   overriding procedure Append_Nil_Impl (This : in out Builder);
+
    overriding procedure Begin_Map_Impl (This : in out Builder);
 
    overriding procedure End_Map_Impl (This : in out Builder);

@@ -17,9 +17,9 @@ package body LML.Output is
       end if;
    end Check_Completion;
 
-   -----------
-   -- Write --
-   -----------
+   ------------
+   -- Append --
+   ------------
 
    procedure Append (This : in out Builder'Class; Val : Scalar) is
    begin
@@ -27,6 +27,17 @@ package body LML.Output is
       This.First := False;
       This.Check_Completion;
    end Append;
+
+   ----------------
+   -- Append_Nil --
+   ----------------
+
+   procedure Append_Nil (This : in out Builder'Class) is
+   begin
+      This.Append_Nil_Impl;
+      This.First := False;
+      This.Check_Completion;
+   end Append_Nil;
 
    ------------
    -- Insert --
@@ -103,6 +114,9 @@ package body LML.Output is
       use all type Yeison.Kinds;
    begin
       case This.Kind is
+         when Nil_Kind =>
+            Builder.Append_Nil;
+
          when Yeison.Scalar_Kinds =>
             Builder.Append (This.As_Scalar);
 
@@ -129,9 +143,6 @@ package body LML.Output is
             end loop;
 
             Builder.End_Vec;
-
-         when others =>
-            raise Program_Error with "unimplemented";
       end case;
    end Build;
 

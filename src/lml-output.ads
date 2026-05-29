@@ -10,6 +10,10 @@ package LML.Output with Preelaborate is
    procedure Append (This : in out Builder'Class; Val : Scalar);
    --  Appends a value to a vector, or provides the value for the previous key
 
+   procedure Append_Nil (This : in out Builder'Class);
+   --  Appends a null value to a vector, or provides the null value for the
+   --  previous key. Note: not all formats support null values.
+
    procedure Begin_Map (This : in out Builder'Class);
 
    procedure End_Map (This : in out Builder'Class);
@@ -43,6 +47,8 @@ private
    procedure Insert_Impl (This : in out Builder; K : Text) is null;
 
    procedure Append_Impl (This : in out Builder; Val : Scalar) is null;
+
+   procedure Append_Nil_Impl (This : in out Builder) is null;
 
    procedure Begin_Map_Impl (This : in out Builder) is null;
 

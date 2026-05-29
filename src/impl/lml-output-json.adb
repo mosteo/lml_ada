@@ -72,6 +72,15 @@ package body LML.Output.JSON is
       This.Append_JSON (Yeison.Make.Scalar (Val));
    end Append_Impl;
 
+   ---------------------
+   -- Append_Nil_Impl --
+   ---------------------
+
+   overriding procedure Append_Nil_Impl (This : in out Builder) is
+   begin
+      This.Append_JSON (Yeison.Make.Nil);
+   end Append_Nil_Impl;
+
    --------------------
    -- Begin_Map_Impl --
    --------------------

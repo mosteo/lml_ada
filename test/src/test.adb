@@ -1,5 +1,7 @@
+with Ada.Exceptions;
 with Ada.Wide_Wide_Text_IO; use Ada.Wide_Wide_Text_IO;
 
+with LML;
 with LML.Conversions.TOML_JSON;
 with LML.Output.Factory;
 with LML.Output.YAML;
@@ -230,7 +232,61 @@ begin
 
             Builder.End_Map;
             Report (Builder, "empty vector within table");
+
+            --  Nil as a standalone value
+            Builder := Empty;
+            Builder.Append_Nil;
+            Report (Builder, "nil standalone");
          end if;
+
+         --  Nil as a map value. Formats with Supports_Nil = False
+         --  must raise Unsupported_Error; the rest must succeed.
+         begin
+            Builder := Empty;
+            Builder.Begin_Map;
+            Builder.Insert ("flag");
+            Builder.Append_Nil;
+            Builder.End_Map;
+            Report (Builder, "nil as map value");
+            if not LML.Supports_Nil (Format) then
+               Put_Line ("FAIL: expected Unsupported_Error for "
+                         & Format'Wide_Wide_Image);
+            end if;
+         exception
+            when E : LML.Unsupported_Error =>
+               if LML.Supports_Nil (Format) then
+                  raise;
+               end if;
+               Put_Line ("*** nil as map value (unsupported) ***");
+               Put_Line (LML.Decode
+                           (Ada.Exceptions.Exception_Message (E)));
+         end;
+
+         --  Nil inside a vector. Same Supports_Nil contract as above.
+         begin
+            Builder := Empty;
+            Builder.Begin_Map;
+            Builder.Insert ("vec");
+            Builder.Begin_Vec;
+            Builder.Append (+"before");
+            Builder.Append_Nil;
+            Builder.Append (+"after");
+            Builder.End_Vec;
+            Builder.End_Map;
+            Report (Builder, "nil in vector");
+            if not LML.Supports_Nil (Format) then
+               Put_Line ("FAIL: expected Unsupported_Error for "
+                         & Format'Wide_Wide_Image);
+            end if;
+         exception
+            when E : LML.Unsupported_Error =>
+               if LML.Supports_Nil (Format) then
+                  raise;
+               end if;
+               Put_Line ("*** nil in vector (unsupported) ***");
+               Put_Line (LML.Decode
+                           (Ada.Exceptions.Exception_Message (E)));
+         end;
       end;
       <<Continue>>
    end loop;

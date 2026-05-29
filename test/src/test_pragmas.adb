@@ -64,35 +64,18 @@ package body Test_Pragmas is
 
       --  Signed numeric literal.
       Show ("signed real", "pragma Alire_Test (Drift, -1.5);");
-
       --  Named (=>) form is accepted as equivalent to the positional one.
       Show ("named form",
             "pragma Alire_Test (Name => ""named"");"       & LF
             & "pragma Alire_Test (Count => 7);"            & LF
             & "pragma Alire_Test (Flag  =>  False);");
 
-      --  Valueless form: a key with no value yields Nil. LML.Output.Build
-      --  does not yet handle Nil_Kind (falls into the "others" branch and
-      --  raises Program_Error), so we just verify the parse completes and
-      --  the expected exception is raised on serialisation.
-      declare
-         Builder : LML.Output.Builder'Class :=
-           LML.Output.Factory.Get (LML.JSON);
-      begin
-         LML.Input.Pragmas.From_Pragmas
-           ("pragma Alire_Test (Should_Fail);"             & LF
+      --  Valueless form: a key with no value yields Nil, serialised as
+      --  JSON null.
+      Show ("valueless yields null",
+            "pragma Alire_Test (Should_Fail);"             & LF
             & "pragma Alire_Test (Other, 1);"              & LF
-            & "pragma Alire_Test (Spaced   ) ;",
-            Builder);
-         Put_Line ("*** valueless yields nil (expected to RAISE) ***");
-         Put_Line ("FAIL: no exception was raised");
-         Put_Line (Builder.To_Text);
-      exception
-         when Program_Error =>
-            Put_Line ("*** valueless yields nil ***");
-            Put_Line ("got expected Program_Error:"
-                      & " Nil serialisation not yet implemented");
-      end;
+            & "pragma Alire_Test (Spaced   ) ;");
 
       --  Two pragmas with different names should not collide.
       Show ("two distinct pragma names",
