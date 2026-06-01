@@ -20,6 +20,7 @@ jobs:
     - uses: alire-project/setup-alire@v5
       with:
         version: 2.1.1
+        toolchain: gnat_native^14 gprbuild
 
     # - name: Prepare pin
     #   run: |
