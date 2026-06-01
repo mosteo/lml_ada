@@ -68,8 +68,8 @@ package LML.Input.Pragmas with Preelaborate is
    --  Image can be a whole Ada file, but the parsing will end at the first
    --  "procedure"/"function"/"generic" occurrence. Pragmas inside Ada comments
    --  are ignored. Raises Duplicate_Pragma if the same (pragma_name, key) pair
-   --  appears more than once. When Options is LML.Options.Pragmas.Input_Options,
-   --  pragma names listed in Options.Strict must parse successfully or
-   --  Invalid_Pragma_Syntax is raised.
+   --  appears more than once. When Options is
+   --  LML.Options.Pragmas.Input_Options, pragma names listed in Options.Strict
+   --  must parse successfully or Invalid_Pragma_Syntax is raised.
 
 end LML.Input.Pragmas;

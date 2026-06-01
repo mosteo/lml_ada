@@ -17,13 +17,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - uses: alire-project/setup-alire@v4
+    - uses: alire-project/setup-alire@v5
+      with:
+        version: 2.1.1
+        toolchain: gnat_native^14 gprbuild
 
-    - name: Prepare pin
-      run: |
-        git clone https://github.com/mosteo/yeison --branch main
-        alr pin yeison_12 --use=yeison/yeison_12
-        alr -C test/ pin yeison_12 --use=../yeison/yeison_12
+    # - name: Prepare pin
+    #   run: |
+    #     git clone https://github.com/mosteo/yeison --branch main
+    #     alr pin yeison_12 --use=yeison/yeison_12
+    #     alr -C test/ pin yeison_12 --use=../yeison/yeison_12
 
     - name: Build library
       run: alr build
