@@ -36,7 +36,7 @@ jobs:
 
     # New testsuite
 
-    - uses: alire-project/setup-alire@v5
+    - uses: alire-project/setup-alire@ba292b5b61b1f319b4d434317f70e3c7aecc7d42
       with:
         version: nightly
         toolchain: gnat_native^14 gprbuild
