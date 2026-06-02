@@ -443,6 +443,12 @@ package body LML.Input.Pragmas is
          else raise Program_Error with
            "unexpected Options type for From_Pragmas: "
            & Ada.Tags.External_Tag (Options'Tag));
+
+      Lower_Case_Keys : constant Boolean :=
+        (if Options in Input_Options'Class
+         then Input_Options (Options).Lower_Case_Keys
+         else No_Input_Options.Lower_Case_Keys);
+      --  Falls back to the Input_Options default when none were supplied.
       use type Yeison.Any;  --  brings "=" into scope for Inner_Maps
 
       package Inner_Maps is new
@@ -458,6 +464,14 @@ package body LML.Input.Pragmas is
 
       Acc : aliased Outer_Maps.Map;
       Pos : Index := Image'First;
+
+      ----------------
+      -- Normalized --
+      ----------------
+
+      function Normalized (Id : Text) return Text
+      is (if Lower_Case_Keys then Wide.To_Lower (Id) else Id);
+      --  Apply the key-casing policy to an identifier (pragma name or key).
 
       --------------------
       -- Record_Pragma --
@@ -605,8 +619,8 @@ package body LML.Input.Pragmas is
             return;
          end if;
 
-         Record_Pragma (Image (Name_F .. Name_L),
-                        Image (Key_F  .. Key_L),
+         Record_Pragma (Normalized (Image (Name_F .. Name_L)),
+                        Normalized (Image (Key_F  .. Key_L)),
                         Value);
       end Try_Parse_Pragma;
 

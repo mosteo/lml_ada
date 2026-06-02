@@ -1,10 +1,14 @@
 with LML.Input.Pragmas;
+with LML.Options.Pragmas;
 with LML.Output.Factory;
 
 --  Drive the pragma parser over a range of well-formed inputs (positional,
 --  named, valueless, signed numbers, and assorted whitespace/comment layouts)
 --  and assert the JSON output carries the expected payloads. Mostly a smoke
 --  test that none of the layouts raise, with a few content checks.
+--
+--  Key casing is asserted verbatim here, so the parser is run with
+--  Preserve_Key_Case; the default lower-casing is covered by Pragmas_Case.
 
 procedure Lml_Tests.Pragmas_Basic is
 
@@ -14,7 +18,8 @@ procedure Lml_Tests.Pragmas_Basic is
       Builder : LML.Output.Builder'Class :=
         LML.Output.Factory.Get (LML.JSON);
    begin
-      LML.Input.Pragmas.From_Pragmas (Image, Builder);
+      LML.Input.Pragmas.From_Pragmas
+        (Image, Builder, LML.Options.Pragmas.Preserve_Key_Case);
       return Builder.To_Text;
    end Run;
 
