@@ -3,14 +3,14 @@ with "ada_toml.gpr";
 with "json.gpr";
 with "yeison_12.gpr";
 abstract project Lml_Config is
-   Crate_Version := "0.1.0";
+   Crate_Version := "0.2.0";
    Crate_Name := "lml";
 
    Alire_Host_OS := "linux";
 
    Alire_Host_Arch := "x86_64";
 
-   Alire_Host_Distro := "suse";
+   Alire_Host_Distro := "ubuntu";
    Ada_Compiler_Switches := External_As_List ("ADAFLAGS", " ");
    Ada_Compiler_Switches := Ada_Compiler_Switches &
           (
