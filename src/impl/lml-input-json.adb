@@ -34,6 +34,9 @@ package body LML.Input.JSON is
       use all type Types.Value_Kind;
    begin
       case This.Kind is
+         when Null_Kind =>
+            Builder.Append_Nil;
+
          when Boolean_Kind =>
             Builder.Append (Scalars.New_Bool (This.Value));
 
@@ -66,9 +69,6 @@ package body LML.Input.JSON is
             end loop;
 
             Builder.End_Vec;
-
-         when others =>
-            raise Program_Error with "unsupported type: " & This.Kind'Image;
       end case;
    end From_JSON;
 

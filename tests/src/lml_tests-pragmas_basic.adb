@@ -1,6 +1,9 @@
+with LML;
 with LML.Input.Pragmas;
 with LML.Options.Pragmas;
 with LML.Output.Factory;
+
+with Lml_Tests.Support;
 
 --  Drive the pragma parser over a range of well-formed inputs (positional,
 --  named, valueless, signed numbers, and assorted whitespace/comment layouts)
@@ -11,6 +14,9 @@ with LML.Output.Factory;
 --  Preserve_Key_Case; the default lower-casing is covered by Pragmas_Case.
 
 procedure Lml_Tests.Pragmas_Basic is
+
+   use Lml_Tests.Support;
+   use all type Yeison.Kinds;
 
    LF : constant Wide_Wide_Character := Wide_Wide_Character'Val (10);
 
@@ -23,18 +29,29 @@ procedure Lml_Tests.Pragmas_Basic is
       return Builder.To_Text;
    end Run;
 
+   function Parse (Image : Text) return Yeison.Any is
+     (LML.From_Text (Run (Image), LML.JSON));
+   --  Parse the JSON the pragma parser emits back into Yeison, so tests can
+   --  assert exact values and inferred types rather than mere substrings.
+
 begin
-   --  All three supported value kinds in one prelude.
+   --  All three supported value kinds in one prelude. Beyond the payload, the
+   --  inferred types must be right: a string stays a string, True becomes a
+   --  boolean (not the text "True") and the numeric literal becomes a real.
    declare
-      Out_Text : constant Text :=
-        Run ("pragma Alire_Test (Name,        ""A test"");" & LF
-             & "pragma Alire_Test (Should_Fail, True);"     & LF
-             & "pragma Alire_Test (Timeout,    11.1);");
+      Pragma_Map : constant Yeison.Any :=
+        Parse ("pragma Alire_Test (Name,        ""A test"");" & LF
+               & "pragma Alire_Test (Should_Fail, True);"     & LF
+               & "pragma Alire_Test (Timeout,    11.1);");
+      Body_Map   : constant Yeison.Any := At_Key (Pragma_Map, "Alire_Test");
    begin
-      Assert (Contains (Out_Text, "A test"),
-              "supported triple: " & Str (Out_Text));
-      Assert (Contains (Out_Text, "Should_Fail"),
-              "supported triple: " & Str (Out_Text));
+      Assert_Equal (At_Key (Body_Map, "Name"), Y_Str ("A test"),
+                    "supported triple: Name");
+      Assert_Equal (At_Key (Body_Map, "Should_Fail"), Y_Bool (True),
+                    "supported triple: Should_Fail");
+      Assert (At_Key (Body_Map, "Timeout").Kind = Real_Kind,
+              "supported triple: Timeout should be a real, got "
+              & At_Key (Body_Map, "Timeout").Kind'Image);
    end;
 
    --  Empty input parses to empty output without raising.
@@ -97,26 +114,39 @@ begin
       null;
    end;
 
-   --  Valueless form: a key with no value yields Nil, serialised as JSON null.
+   --  Valueless form: a key with no value yields Nil (JSON null), while a
+   --  sibling numeric value parses as an integer.
    declare
-      Out_Text : constant Text :=
-        Run ("pragma Alire_Test (Should_Fail);" & LF
-             & "pragma Alire_Test (Other, 1);"  & LF
-             & "pragma Alire_Test (Spaced   ) ;");
+      Body_Map : constant Yeison.Any :=
+        At_Key (Parse ("pragma Alire_Test (Should_Fail);" & LF
+                       & "pragma Alire_Test (Other, 1);"  & LF
+                       & "pragma Alire_Test (Spaced   ) ;"),
+                "Alire_Test");
    begin
-      Assert (Contains (Out_Text, "null"), "valueless: " & Str (Out_Text));
+      Assert (At_Key (Body_Map, "Should_Fail").Kind = Nil_Kind,
+              "valueless key should be nil");
+      Assert (At_Key (Body_Map, "Spaced").Kind = Nil_Kind,
+              "valueless spaced key should be nil");
+      Assert_Equal (At_Key (Body_Map, "Other"), Y_Int (1), "valueless: Other");
    end;
 
-   --  Two pragmas with different names should not collide.
+   --  Two pragmas with different names should not collide: each becomes its
+   --  own top-level object carrying its own key. The structural equality
+   --  subsumes "both names appear" and additionally pins down the nesting,
+   --  values and that nothing else leaked.
    declare
-      Out_Text : constant Text :=
-        Run ("pragma Alire_Test (Name, ""A"");" & LF
-             & "pragma Other_Pragma (Tag,  ""B"");");
+      Parsed   : constant Yeison.Any :=
+        Parse ("pragma Alire_Test (Name, ""A"");" & LF
+               & "pragma Other_Pragma (Tag,  ""B"");");
+      Expected : Yeison.Any := Y_Map;
+      First    : Yeison.Any := Y_Map;
+      Second   : Yeison.Any := Y_Map;
    begin
-      Assert (Contains (Out_Text, "Alire_Test"),
-              "two names: " & Str (Out_Text));
-      Assert (Contains (Out_Text, "Other_Pragma"),
-              "two names: " & Str (Out_Text));
+      Put (First,  "Name", Y_Str ("A"));
+      Put (Second, "Tag",  Y_Str ("B"));
+      Put (Expected, "Alire_Test",   First);
+      Put (Expected, "Other_Pragma", Second);
+      Assert_Equal (Parsed, Expected, "two distinct pragma names");
    end;
 
    --  Whitespace variants: compact, extra spaces, tabs, multi-line bodies and

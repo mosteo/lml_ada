@@ -1,166 +1,165 @@
+with LML;
 with LML.Output.Factory;
-with LML.Output.YAML;
 
-with Yeison_12;
+with Lml_Tests.Support;
 
---  Exercise every builder shape on every supported output format and assert
---  that something non-empty comes out. This is a smoke test: its real value is
---  that none of the builder paths raise at runtime.
+--  Drive every builder shape on every supported output format. For the formats
+--  LML can read back (JSON, TOML) the produced text is re-parsed and compared,
+--  structurally, against an independently-built oracle: this catches wrong
+--  nesting, dropped elements or swapped values, not merely that output is
+--  non-empty. For YAML (output only) we keep a non-empty smoke check.
 
 procedure Lml_Tests.Output_Shapes is
 
-   package Yeison renames Yeison_12;
+   use Lml_Tests.Support;
 
-   function "+" (Str : Yeison.Text) return Yeison.Scalar
+   function "+" (S : Yeison.Text) return Yeison.Scalar
      renames Yeison.Scalars.New_Text;
 
-   procedure String_In_Table (Builder : in out LML.Output.Builder'Class) is
+   procedure Check_Shape
+     (Drive    : access procedure (B : in out LML.Output.Builder'Class);
+      Expected : Yeison.Any;
+      Title    : String) is
    begin
-      Builder.Begin_Map;
-      Builder.Insert ("key");
-      Builder.Append (+"Stand-alone string");
-      Builder.End_Map;
-   end String_In_Table;
+      for Format in LML.Supported_Outputs loop
+         declare
+            B : LML.Output.Builder'Class := LML.Output.Factory.Get (Format);
+         begin
+            Drive (B);
+            Check_Output (B.To_Text, Format, Expected, Title);
+         end;
+      end loop;
+   end Check_Shape;
 
-   procedure Table (Builder : in out LML.Output.Builder'Class) is
-   begin
-      Builder.Begin_Map;
-      Builder.Insert ("key1");
-      Builder.Append (+"val1");
-      Builder.Insert ("key2");
-      Builder.Append (+"val2");
-      Builder.End_Map;
-   end Table;
+   --------------------
+   -- Shape drivers  --
+   --------------------
 
-   procedure Check (Builder : LML.Output.Builder'Class; Title : Text) is
+   procedure Simple_Map (B : in out LML.Output.Builder'Class) is
    begin
-      Assert (Builder.To_Text'Length > 0, "empty output for " & Str (Title));
-   end Check;
+      B.Begin_Map;
+      B.Insert ("key1"); B.Append (+"val1");
+      B.Insert ("key2"); B.Append (+"val2");
+      B.End_Map;
+   end Simple_Map;
+
+   procedure Nested_Map (B : in out LML.Output.Builder'Class) is
+   begin
+      B.Begin_Map;
+      B.Insert ("outer");
+      B.Begin_Map;
+      B.Insert ("inner"); B.Append (+"x");
+      B.End_Map;
+      B.End_Map;
+   end Nested_Map;
+
+   procedure Vec_Of_Strings (B : in out LML.Output.Builder'Class) is
+   begin
+      B.Begin_Map;
+      B.Insert ("vec");
+      B.Begin_Vec;
+      B.Append (+"a"); B.Append (+"b");
+      B.End_Vec;
+      B.End_Map;
+   end Vec_Of_Strings;
+
+   procedure Vec_Of_Maps (B : in out LML.Output.Builder'Class) is
+   begin
+      B.Begin_Map;
+      B.Insert ("rows");
+      B.Begin_Vec;
+      B.Begin_Map; B.Insert ("k"); B.Append (+"v1"); B.End_Map;
+      B.Begin_Map; B.Insert ("k"); B.Append (+"v2"); B.End_Map;
+      B.End_Vec;
+      B.End_Map;
+   end Vec_Of_Maps;
+
+   procedure Vec_Of_Vecs (B : in out LML.Output.Builder'Class) is
+   begin
+      B.Begin_Map;
+      B.Insert ("grid");
+      B.Begin_Vec;
+      B.Begin_Vec; B.Append (+"a"); B.Append (+"b"); B.End_Vec;
+      B.Begin_Vec; B.Append (+"c"); B.End_Vec;
+      B.End_Vec;
+      B.End_Map;
+   end Vec_Of_Vecs;
+
+   procedure Deep (B : in out LML.Output.Builder'Class) is
+   begin
+      B.Begin_Map;
+      B.Insert ("deep");
+      B.Begin_Vec;
+      B.Begin_Vec;
+      B.Begin_Map;
+      B.Insert ("k1"); B.Append (+"a");
+      B.Insert ("k2"); B.Append (+"b");
+      B.End_Map;
+      B.End_Vec;
+      B.End_Vec;
+      B.End_Map;
+   end Deep;
+
+   --------------------
+   -- Oracles        --
+   --------------------
+
+   function Map_Of (K1, V1, K2, V2 : Text) return Yeison.Any is
+      M : Yeison.Any := Y_Map;
+   begin
+      Put (M, K1, Y_Str (V1));
+      Put (M, K2, Y_Str (V2));
+      return M;
+   end Map_Of;
+
+   E_Simple : constant Yeison.Any := Map_Of ("key1", "val1", "key2", "val2");
+   E_Nested : Yeison.Any := Y_Map;
+   E_Vstr   : Yeison.Any := Y_Map;
+   E_Vmaps  : Yeison.Any := Y_Map;
+   E_Vvecs  : Yeison.Any := Y_Map;
+   E_Deep   : Yeison.Any := Y_Map;
+
+   Tmp_Map  : Yeison.Any := Y_Map;
+   Tmp_Vec  : Yeison.Any := Y_Vec;
+   Tmp_Vec2 : Yeison.Any := Y_Vec;
 
 begin
-   for Format in LML.Supported_Outputs loop
-      declare
-         Empty   : constant LML.Output.Builder'Class :=
-                     LML.Output.Factory.Get (Format);
-         Builder : LML.Output.Builder'Class := LML.Output.Factory.Get (Format);
-      begin
-         --  Output a simple string in anonymous table
-         String_In_Table (Builder);
-         Check (Builder, "string in anon table");
+   --  E_Nested = { outer => { inner => x } }
+   Put (Tmp_Map, "inner", Y_Str ("x"));
+   Put (E_Nested, "outer", Tmp_Map);
 
-         --  Output within a named table
-         Builder := Empty;
-         Builder.Begin_Map;
-         Builder.Insert ("table");
-         String_In_Table (Builder);
-         Builder.End_Map;
-         Check (Builder, "table within table");
+   --  E_Vstr = { vec => [a, b] }
+   Tmp_Vec := Y_Vec;
+   Tmp_Vec.Append (Y_Str ("a"));
+   Tmp_Vec.Append (Y_Str ("b"));
+   Put (E_Vstr, "vec", Tmp_Vec);
 
-         --  A simple table
-         Builder := Empty;
-         Table (Builder);
-         Check (Builder, "anon table");
+   --  E_Vmaps = { rows => [ {k=>v1}, {k=>v2} ] }
+   Tmp_Vec := Y_Vec;
+   Tmp_Map := Y_Map; Put (Tmp_Map, "k", Y_Str ("v1")); Tmp_Vec.Append (Tmp_Map);
+   Tmp_Map := Y_Map; Put (Tmp_Map, "k", Y_Str ("v2")); Tmp_Vec.Append (Tmp_Map);
+   Put (E_Vmaps, "rows", Tmp_Vec);
 
-         --  Doubly-nested table
-         Builder := Empty;
-         Builder.Begin_Map;
-         Builder.Insert ("parent");
-         Builder.Begin_Map;
-         Builder.Insert ("child");
-         String_In_Table (Builder);
-         Builder.End_Map;
-         Builder.End_Map;
-         Check (Builder, "doubly-nested table");
+   --  E_Vvecs = { grid => [ [a, b], [c] ] }
+   Tmp_Vec  := Y_Vec;
+   Tmp_Vec2 := Y_Vec;
+   Tmp_Vec2.Append (Y_Str ("a")); Tmp_Vec2.Append (Y_Str ("b"));
+   Tmp_Vec.Append (Tmp_Vec2);
+   Tmp_Vec2 := Y_Vec; Tmp_Vec2.Append (Y_Str ("c"));
+   Tmp_Vec.Append (Tmp_Vec2);
+   Put (E_Vvecs, "grid", Tmp_Vec);
 
-         --  Output an array of strings inside the top-level anon table
-         Builder := Empty;
-         Builder.Begin_Map;
-         Builder.Insert ("vector");
-         Builder.Begin_Vec;
-         Builder.Append (+"item1");
-         Builder.Append (+"item2");
-         Builder.End_Vec;
-         Builder.End_Map;
-         Check (Builder, "array within table");
+   --  E_Deep = { deep => [ [ {k1=>a, k2=>b} ] ] }
+   Tmp_Vec  := Y_Vec;
+   Tmp_Vec2 := Y_Vec;
+   Tmp_Vec2.Append (Map_Of ("k1", "a", "k2", "b"));
+   Tmp_Vec.Append (Tmp_Vec2);
+   Put (E_Deep, "deep", Tmp_Vec);
 
-         --  Output an array of records
-         Builder := Empty;
-         Builder.Begin_Map;
-         Builder.Insert ("vector");
-         Builder.Begin_Vec;
-         Table (Builder);
-         Table (Builder);
-         Builder.End_Vec;
-         Builder.End_Map;
-         Check (Builder, "array of tables");
-
-         --  Output table containing array
-         Builder := Empty;
-         Builder.Begin_Map;
-         Builder.Insert ("table");
-         Builder.Begin_Map;
-         Builder.Insert ("vector");
-         Builder.Begin_Vec;
-         Builder.Append (+"item1");
-         Builder.Append (+"item2");
-         Builder.End_Vec;
-         Builder.End_Map;
-         Builder.End_Map;
-         Check (Builder, "array within nested table");
-
-         --  Array of arrays
-         Builder := Empty;
-         Builder.Begin_Map;
-         Builder.Insert ("vec");
-         Builder.Begin_Vec;
-         for I in 1 .. 2 loop
-            Builder.Begin_Vec;
-            Builder.Append (+I'Wide_Wide_Image);
-            Builder.Append (+Integer'(I + 1)'Wide_Wide_Image);
-            Builder.End_Vec;
-         end loop;
-         Builder.End_Vec;
-         Builder.End_Map;
-         Check (Builder, "array of arrays within table");
-
-         --  Array of arrays of arrays of maps. For YAML we show both styles.
-         declare
-            First : Boolean := True;
-         begin
-            <<YAML_Showcase>>
-
-            Builder := Empty;
-            if Format in LML.YAML and then not First then
-               LML.Output.YAML.Builder (Builder)
-                 .Set_Style (LML.Output.YAML.Expanded);
-            end if;
-
-            Builder.Begin_Map;
-            Builder.Insert ("vec");
-            Builder.Begin_Vec;
-            for I in 1 .. 2 loop
-               Builder.Begin_Vec;
-               for J in Wide_Wide_Character'('a') .. 'b' loop
-                  Builder.Begin_Vec;
-                  Builder.Begin_Map;
-                  Builder.Insert ("key1");
-                  Builder.Append (+("" & J));
-                  Builder.Insert ("key2");
-                  Builder.Append (+("" & Wide_Wide_Character'Succ (J)));
-                  Builder.End_Map;
-                  Builder.End_Vec;
-               end loop;
-               Builder.End_Vec;
-            end loop;
-            Builder.End_Vec;
-            Builder.End_Map;
-            Check (Builder, "array of arrays of arrays of maps within table");
-
-            if Format in LML.YAML and then First then
-               First := False;
-               goto YAML_Showcase;
-            end if;
-         end;
-      end;
-   end loop;
+   Check_Shape (Simple_Map'Access,     E_Simple, "simple map");
+   Check_Shape (Nested_Map'Access,     E_Nested, "nested map");
+   Check_Shape (Vec_Of_Strings'Access, E_Vstr,   "vector of strings");
+   Check_Shape (Vec_Of_Maps'Access,    E_Vmaps,  "vector of maps");
+   Check_Shape (Vec_Of_Vecs'Access,    E_Vvecs,  "vector of vectors");
+   Check_Shape (Deep'Access,           E_Deep,   "deeply nested");
 end Lml_Tests.Output_Shapes;
