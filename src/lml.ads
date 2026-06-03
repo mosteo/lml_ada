@@ -43,7 +43,6 @@ package LML with Preelaborate is
                      return Text with
      Pre =>
        (From /= Into
-        and then From in Supported_Inputs
         and then Into in Supported_Outputs)
        or else raise Unsupported_Error with
          "Cannot convert from " & From'Image & " into " & Into'Image;
@@ -67,8 +66,7 @@ package LML with Preelaborate is
 
    function From_Text (Image  : Text;
                        Format : Formats)
-                       return Yeison.Any
-     with Pre => Format in Supported_Inputs;
+                       return Yeison.Any;
 
    function To_Text (This   : Yeison.Any;
                      Format : Formats)
