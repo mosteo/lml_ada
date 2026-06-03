@@ -1,14 +1,20 @@
 with Ada.Directories;
 with Ada.Text_IO;
 
+with LML;
 with LML.Input.Pragmas.File_IO;
 with LML.Output.Factory;
+
+with Lml_Tests.Support;
 
 --  Exercise the From_File path. To stay independent of the test runner's
 --  working directory, the fixture is written to a temporary file at runtime
 --  (a verbatim copy of test/data/pragma_sample.ada), read back, then removed.
+--  Default options apply, so identifier keys are lower-cased.
 
 procedure Lml_Tests.Pragmas_From_File is
+
+   use Lml_Tests.Support;
 
    Path : constant String := "lml_tests_pragma_sample.ada";
 
@@ -51,14 +57,27 @@ begin
 
       declare
          Out_Text : constant Text := Builder.To_Text;
+         Parsed   : constant Yeison.Any := LML.From_Text (Out_Text, LML.JSON);
+
+         Expected : Yeison.Any := Y_Map;
+         Sample   : Yeison.Any := Y_Map;
+         Other    : Yeison.Any := Y_Map;
       begin
          Ada.Directories.Delete_File (Path);
-         Assert (Contains (Out_Text, "hello from file"),
-                 "missing file pragma: " & Str (Out_Text));
-         Assert (Contains (Out_Text, "another pragma"),
-                 "missing other pragma: " & Str (Out_Text));
-         Assert (not Contains (Out_Text, "after unit decl"),
-                 "post-unit pragma leaked: " & Str (Out_Text));
+
+         --  Full structure, with inferred types and lower-cased keys. This
+         --  subsumes the "values present" checks and additionally pins down
+         --  that the post-unit-decl pragma and the in-comment pragma did NOT
+         --  leak (they are simply absent from the expected structure).
+         Put (Sample, "name",    Y_Str ("hello from file"));
+         Put (Sample, "count",   Y_Int (42));
+         Put (Sample, "ratio",   Y_Real (1.5));
+         Put (Sample, "enabled", Y_Bool (True));
+         Put (Other,  "tag",     Y_Str ("another pragma"));
+         Put (Expected, "sample_pragma", Sample);
+         Put (Expected, "other_pragma",  Other);
+
+         Assert_Equal (Parsed, Expected, "pragmas from file");
       end;
    exception
       when others =>

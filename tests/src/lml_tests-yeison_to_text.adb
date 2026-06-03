@@ -1,30 +1,48 @@
+with LML;
 with LML.Output;
 
-with Yeison_12;
+with Lml_Tests.Support;
 
---  Build a Yeison value and render it through the per-format builders via
---  LML.Output.To_Builder. Asserts non-empty output for every supported format.
+--  Build a non-trivial Yeison value (nested map, vector, and the three scalar
+--  kinds common to all formats) and render it through LML.Output.To_Builder for
+--  every supported output. For the formats LML can also read (JSON, TOML) we
+--  re-parse the rendering and require it to equal the original value: a true
+--  round-trip. For the output-only YAML we check the value tokens are present.
 
 procedure Lml_Tests.Yeison_To_Text is
 
-   package Yeison renames Yeison_12;
-   use Yeison.Operators;
+   use Lml_Tests.Support;
 
-   Sample : constant Yeison.Any :=
-              Yeison.Empty_Map.Insert (+"key", +"val");
+   Nested : Yeison.Any := Y_Map;
+   List   : Yeison.Any := Y_Vec;
+   Sample : Yeison.Any := Y_Map;
 
 begin
+   Put (Nested, "inner", Y_Str ("deep"));
+   List.Append (Y_Str ("a"));
+   List.Append (Y_Str ("b"));
+
+   Put (Sample, "name",   Y_Str ("val"));
+   Put (Sample, "count",  Y_Int (7));
+   Put (Sample, "active", Y_Bool (True));
+   Put (Sample, "nested", Nested);
+   Put (Sample, "list",   List);
+
    for Format in LML.Supported_Outputs loop
       declare
-         Builder : constant LML.Output.Builder'Class :=
-                     LML.Output.To_Builder (Sample, Format);
+         Rendered : constant Text :=
+                      LML.Output.To_Builder (Sample, Format).To_Text;
       begin
-         Assert (Builder.To_Text'Length > 0,
-                 "empty output for " & Format'Image);
-         Assert (Contains (Builder.To_Text, "key"),
-                 "missing key in " & Format'Image);
-         Assert (Contains (Builder.To_Text, "val"),
-                 "missing value in " & Format'Image);
+         Check_Output (Rendered, Format, Sample, "yeison round-trip");
+
+         if Format in LML.YAML then
+            --  Not re-parseable by LML, so assert the value tokens directly.
+            Assert (Contains (Rendered, "val"),  "YAML missing val");
+            Assert (Contains (Rendered, "deep"), "YAML missing nested value");
+            Assert (Contains (Rendered, "7"),    "YAML missing int");
+            Assert (Contains (Rendered, "true"), "YAML missing bool");
+            Assert (Contains (Rendered, "- "),   "YAML missing list item");
+         end if;
       end;
    end loop;
 end Lml_Tests.Yeison_To_Text;
