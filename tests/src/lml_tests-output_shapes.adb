@@ -4,10 +4,10 @@ with LML.Output.Factory;
 with Lml_Tests.Support;
 
 --  Drive every builder shape on every supported output format. For the formats
---  LML can read back (JSON, TOML) the produced text is re-parsed and compared,
---  structurally, against an independently-built oracle: this catches wrong
---  nesting, dropped elements or swapped values, not merely that output is
---  non-empty. For YAML (output only) we keep a non-empty smoke check.
+--  LML can read back (JSON, TOML, YAML) the produced text is re-parsed and
+--  compared, structurally, against an independently-built oracle: this catches
+--  wrong nesting, dropped elements or swapped values, not merely that the
+--  output is non-empty.
 
 procedure Lml_Tests.Output_Shapes is
 

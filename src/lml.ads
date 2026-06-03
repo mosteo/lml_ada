@@ -26,7 +26,7 @@ package LML with Preelaborate is
                     TOML,
                     YAML);
 
-   subtype Supported_Inputs is Formats range JSON .. TOML;
+   subtype Supported_Inputs is Formats range JSON .. YAML;
 
    Supports_Nil : constant array (Formats) of Boolean :=
                     (TOML => False,

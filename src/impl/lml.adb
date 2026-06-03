@@ -1,6 +1,7 @@
 with LML.Input.JSON;
 with LML.Input.Pragmas;
 with LML.Input.TOML;
+with LML.Input.YAML;
 with LML.Output.Factory;
 with LML.Output.Yeison;
 
@@ -21,10 +22,7 @@ package body LML is
          when JSON    => Input.JSON.From_JSON (Image, Builder);
          when Pragmas => Input.Pragmas.From_Pragmas (Image, Builder);
          when TOML    => Input.TOML.From_TOML (Image, Builder);
-         when others  =>
-            raise Unsupported_Error
-              with "Cannot convert from " & From'Image
-                   & " into " & Into'Image;
+         when YAML    => Input.YAML.From_YAML (Image, Builder);
       end case;
       return Builder.To_Text;
    end Convert;
@@ -47,7 +45,7 @@ package body LML is
          when TOML =>
             Input.TOML.From_TOML (Input.TOML.From_String (Image), Builder);
          when YAML =>
-            raise Unsupported_Error with "Cannot parse YAML";
+            Output.Build (Input.YAML.From_String (Image), Builder);
       end case;
 
       return Builder.To_Yeison;

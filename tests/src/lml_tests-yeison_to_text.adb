@@ -4,10 +4,10 @@ with LML.Output;
 with Lml_Tests.Support;
 
 --  Build a non-trivial Yeison value (nested map, vector, and the three scalar
---  kinds common to all formats) and render it through LML.Output.To_Builder for
---  every supported output. For the formats LML can also read (JSON, TOML) we
---  re-parse the rendering and require it to equal the original value: a true
---  round-trip. For the output-only YAML we check the value tokens are present.
+--  kinds common to all formats) and render it through LML.Output.To_Builder
+--  for every supported output. For the formats LML can also read (JSON, TOML,
+--  YAML) we re-parse the rendering and require it to equal the original value:
+--  a true round-trip.
 
 procedure Lml_Tests.Yeison_To_Text is
 
@@ -34,15 +34,6 @@ begin
                       LML.Output.To_Builder (Sample, Format).To_Text;
       begin
          Check_Output (Rendered, Format, Sample, "yeison round-trip");
-
-         if Format in LML.YAML then
-            --  Not re-parseable by LML, so assert the value tokens directly.
-            Assert (Contains (Rendered, "val"),  "YAML missing val");
-            Assert (Contains (Rendered, "deep"), "YAML missing nested value");
-            Assert (Contains (Rendered, "7"),    "YAML missing int");
-            Assert (Contains (Rendered, "true"), "YAML missing bool");
-            Assert (Contains (Rendered, "- "),   "YAML missing list item");
-         end if;
       end;
    end loop;
 end Lml_Tests.Yeison_To_Text;

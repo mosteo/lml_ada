@@ -44,6 +44,11 @@ private
       Stack  : Stacks.List := To_List (Root);
       Inline : Boolean := False; -- Whether next item goes in the same line
       Style  : Styles  := Compact;
+      Pending_Open : Boolean := False;
+      --  A collection was opened as a map value and the trailing newline is
+      --  deferred until we know whether it has content: an empty one must be
+      --  emitted as flow-style "[]"/"{}" so it round-trips (a bare "key:"
+      --  re-parses as null, not as an empty collection).
    end record with
      Type_Invariant => not Stack.Is_Empty;
 
