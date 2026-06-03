@@ -17,10 +17,16 @@ command = ["alr", "run"]
 
 [[depends-on]]
 ada_toml = "~0.4.0"
+json = "^6.0.1"
 yeison_12 = "~0.3.1"
-json = "^6.0.0"
 
 [[pins]]
+
+[pins.json]
+url    = "https://github.com/mosteo/onox-json-ada"
+subdir = "json"
+commit = "737296c5e378c33ac823af8404f87ebac0eb2fad"
+
 [pins.yeison_12]
 url    = "https://github.com/mosteo/yeison"
 subdir = "yeison_12"

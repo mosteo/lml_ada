@@ -435,14 +435,24 @@ package body LML.Input.Pragmas is
                              LML.Options.No_Options)
    is
       use LML.Options.Pragmas;
-      Strict : constant Yeison.Vec :=
-        (if Options in LML.Options.Default_No_Options'Class
-         then Yeison.Empty_Vec
-         elsif Options in Input_Options'Class
-         then Input_Options (Options).Strict
-         else raise Program_Error with
-           "unexpected Options type for From_Pragmas: "
-           & Ada.Tags.External_Tag (Options'Tag));
+
+      function Strict_Names (Opts : LML.Options.Any'Class) return Yeison.Vec is
+      --  Statement form (not a conditional expression) on purpose: GNAT 15
+      --  ICEs on a constant initialized by a conditional expression whose
+      --  else branch is `raise ... with ... & External_Tag (...)`.
+      begin
+         if Opts in LML.Options.Default_No_Options'Class then
+            return Yeison.Empty_Vec;
+         elsif Opts in Input_Options'Class then
+            return Input_Options (Opts).Strict;
+         else
+            raise Program_Error with
+              "unexpected Options type for From_Pragmas: "
+              & Ada.Tags.External_Tag (Opts'Tag);
+         end if;
+      end Strict_Names;
+
+      Strict : constant Yeison.Vec := Strict_Names (Options);
 
       Lower_Case_Keys : constant Boolean :=
         (if Options in Input_Options'Class
