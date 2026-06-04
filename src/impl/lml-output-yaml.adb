@@ -82,8 +82,13 @@ package body LML.Output.YAML is
    begin
       case This.Style is
          when Compact =>
+            --  Keep the child inline after the bullet: a single separating
+            --  space (the bullet itself carries none).
+            This.Append (" ");
             This.Inline := True;
          when Expanded =>
+            --  Break the line; no space is emitted, so the bullet leaves no
+            --  trailing whitespace.
             This.New_Line;
       end case;
    end Apply_Style;
@@ -115,7 +120,10 @@ package body LML.Output.YAML is
    procedure Array_Marker (This : in out Builder) is
    begin
       This.Indent;
-      This.Append ("- ");
+      --  Just the bullet; the separating space (or line break) is added by
+      --  whatever writes the element, so an Expanded bullet has no trailing
+      --  whitespace.
+      This.Append ("-");
    end Array_Marker;
 
    -------------------
@@ -155,7 +163,7 @@ package body LML.Output.YAML is
             This.Append (" ~");
          when List =>
             This.Array_Marker;
-            This.Append ("~");
+            This.Append (" ~");
       end case;
       This.New_Line;
    end Append_Nil_Impl;
@@ -182,6 +190,7 @@ package body LML.Output.YAML is
             This.Append_Scalar (Val);
          when List =>
             This.Array_Marker;
+            This.Append (" ");
             This.Append_Scalar (Val);
       end case;
 
