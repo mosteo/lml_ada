@@ -15,6 +15,10 @@ package body LML.Schemas is
 
    Pass : constant Result := (Data => (Valid => True));
 
+   ----------
+   -- Fail --
+   ----------
+
    function Fail (Path, Reason : Text) return Result is
      ((Data => (Valid   => False,
                 Message  => WWU.To_Unbounded_Wide_Wide_String
@@ -24,9 +28,17 @@ package body LML.Schemas is
    --  Helpers  --
    ---------------
 
+   -----------
+   -- Field --
+   -----------
+
    function Field (Map : Yeison.Any; Key : Text) return Yeison.Any is
      (Map.Get (Make.Str (Key)));
    --  The value of a present map entry (the caller guards with Has_Key).
+
+   ---------------
+   -- Type_Name --
+   ---------------
 
    function Type_Name (K : Yeison.Kinds) return Text is
      (case K is
@@ -38,6 +50,10 @@ package body LML.Schemas is
          when Map_Kind  => "object",
          when Vec_Kind  => "array");
 
+   --------------
+   -- As_Float --
+   --------------
+
    function As_Float (X : Yeison.Any) return Big_Real is
      (case X.Kind is
          when Int_Kind  => Big_Real (X.As_Int),
@@ -45,12 +61,20 @@ package body LML.Schemas is
          when others    =>
             raise Constraint_Error with "not a number");
 
+   ----------------------
+   -- Real_Is_Integral --
+   ----------------------
+
    function Real_Is_Integral (X : Yeison.Any) return Boolean is
    begin
       return Big_Real'Truncation (X.As_Real_Float) = X.As_Real_Float;
    exception
       when others => return False;  --  non-finite reals are not integral
    end Real_Is_Integral;
+
+   ------------------
+   -- Type_Matches --
+   ------------------
 
    function Type_Matches (Data : Yeison.Any; Name : Text) return Boolean is
    begin
@@ -70,11 +94,15 @@ package body LML.Schemas is
       end if;
    end Type_Matches;
 
+   ---------
+   -- Idx --
+   ---------
+
    function Idx (I : Uint) return Text is
       S : constant String := I'Image;
    begin
       --  'Image prefixes a blank for non-negative values; drop it.
-      return Decode (if S (S'First) = ' '
+      return Decode (if   S (S'First) = ' '
                      then S (S'First + 1 .. S'Last) else S);
    end Idx;
 
