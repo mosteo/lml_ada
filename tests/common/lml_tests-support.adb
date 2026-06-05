@@ -1,4 +1,5 @@
 with LML.Input.YAML.Initialization;
+with LML.Schemas;
 
 package body Lml_Tests.Support is
 
@@ -67,5 +68,34 @@ package body Lml_Tests.Support is
    begin
       Check_Output (LML.To_Text (Value, Format), Format, Value, Title);
    end Check_Roundtrip;
+
+   ------------------
+   -- Assert_Valid --
+   ------------------
+
+   procedure Assert_Valid (Data, Schema : Yeison.Any; Title : String) is
+      R : constant LML.Schemas.Result := LML.Schemas.Validate (Data, Schema);
+   begin
+      Assert (LML.Schemas.Is_Valid (R),
+              Title & ": expected valid, got error: "
+              & Str (LML.Schemas.Error (R)));
+   end Assert_Valid;
+
+   --------------------
+   -- Assert_Invalid --
+   --------------------
+
+   procedure Assert_Invalid (Data, Schema : Yeison.Any;
+                             Expected     : Text;
+                             Title        : String)
+   is
+      R : constant LML.Schemas.Result := LML.Schemas.Validate (Data, Schema);
+   begin
+      Assert (not LML.Schemas.Is_Valid (R),
+              Title & ": expected invalid, but it validated");
+      Assert (Contains (LML.Schemas.Error (R), Expected),
+              Title & ": error " & '"' & Str (LML.Schemas.Error (R))
+              & """ does not contain """ & Str (Expected) & '"');
+   end Assert_Invalid;
 
 end Lml_Tests.Support;

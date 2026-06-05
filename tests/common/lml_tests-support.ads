@@ -71,4 +71,19 @@ package Lml_Tests.Support is
                               Title  : String);
    --  Render Value to Format and assert it parses back equal to Value.
 
+   ----------------------------
+   --  Schema validation     --
+   ----------------------------
+
+   procedure Assert_Valid (Data, Schema : Yeison.Any; Title : String);
+   --  Assert that Data validates against Schema; on failure the assertion
+   --  message includes the unexpected validation error.
+
+   procedure Assert_Invalid (Data, Schema : Yeison.Any;
+                             Expected     : Text;
+                             Title        : String);
+   --  Assert that Data does NOT validate against Schema and that the failure
+   --  message contains Expected (a substring locating path and/or reason).
+   --  This checks the actual diagnostic, not merely the valid/invalid verdict.
+
 end Lml_Tests.Support;
