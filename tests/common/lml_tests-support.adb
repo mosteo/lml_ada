@@ -1,3 +1,5 @@
+with LML.Input.YAML.Initialization;
+
 package body Lml_Tests.Support is
 
    ---------
@@ -41,7 +43,12 @@ package body Lml_Tests.Support is
                            Title        : String;
                            May_Be_Empty : Boolean := False) is
    begin
-      if Format in LML.JSON | LML.TOML then
+      if Format in LML.JSON | LML.TOML | LML.YAML then
+         --  YAML input is reached through a hook the client must arm once;
+         --  Initialize only assigns the access value, so it is idempotent.
+         if Format in LML.YAML then
+            LML.Input.YAML.Initialization.Initialize;
+         end if;
          Assert_Equal (LML.From_Text (Found_Text, Format), Expected,
                        Title & " [" & Format'Image & "]");
       elsif not May_Be_Empty then
