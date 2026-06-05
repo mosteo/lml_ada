@@ -1,0 +1,4 @@
+# Invalid: the top-level schema sets additionalProperties: false, so only
+# Alire_Test is allowed as a pragma name.
+Build_Switches:
+  Optimization: "-O2"

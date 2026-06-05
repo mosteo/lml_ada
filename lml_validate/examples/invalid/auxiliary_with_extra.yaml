@@ -1,0 +1,5 @@
+# Invalid: Auxiliary_File is true (so it must stand alone) yet another key is
+# also present -> fails the conditional maxProperties: 1 rule.
+Alire_Test:
+  Auxiliary_File: true
+  Name: "should not be here"

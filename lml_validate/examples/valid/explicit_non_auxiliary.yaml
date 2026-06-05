@@ -1,0 +1,5 @@
+# Valid: Auxiliary_File is present but false, so the if/then (which triggers
+# only on the const true) does not fire and other keys are allowed alongside.
+Alire_Test:
+  Auxiliary_File: false
+  Name: "Not a support unit"

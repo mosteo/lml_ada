@@ -1,6 +1,7 @@
 name = "lml"
 description = "Lightweight Markup Language conversions"
-version = "0.3.0"
+version = "0.4.0"
+# 0.4.0: Schema validation (lml_validate for command-line testing)
 # 0.3.0: YAML support (input/output, not anchors)
 # 0.2.0: moved to new Alire testsuite
 

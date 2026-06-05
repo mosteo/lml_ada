@@ -1,0 +1,3 @@
+# Invalid: Should_Fail must be a boolean, not a string.
+Alire_Test:
+  Should_Fail: "yes"
