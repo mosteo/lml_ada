@@ -1,5 +1,7 @@
 with Ada.Containers.Vectors;
 
+with LML.Input.Emit;
+
 with Yaml.Parser;
 
 package body LML.Input.YAML.Initialization is
@@ -99,18 +101,18 @@ package body LML.Input.YAML.Initialization is
                After_Value;
                return;
             elsif S = "true" or else S = "True" or else S = "TRUE" then
-               Builder.Append (Scalars.New_Bool (True));
+               Emit.Append_Bool (Builder, True);
                After_Value;
                return;
             elsif S = "false" or else S = "False" or else S = "FALSE" then
-               Builder.Append (Scalars.New_Bool (False));
+               Emit.Append_Bool (Builder, False);
                After_Value;
                return;
             end if;
 
             --  Integer?
             begin
-               Builder.Append (Scalars.New_Int (Yeison.Big_Int'Value (S)));
+               Emit.Append_Int (Builder, Yeison.Big_Int'Value (S));
                After_Value;
                return;
             exception
@@ -119,9 +121,7 @@ package body LML.Input.YAML.Initialization is
 
             --  Real?
             begin
-               Builder.Append
-                 (Scalars.New_Real
-                    (Yeison.Reals.New_Real (Yeison.Big_Real'Value (S))));
+               Emit.Append_Real (Builder, Yeison.Big_Real'Value (S));
                After_Value;
                return;
             exception
@@ -130,7 +130,7 @@ package body LML.Input.YAML.Initialization is
          end if;
 
          --  Fall back to text.
-         Builder.Append (Scalars.New_Text (LML.Decode (S)));
+         Emit.Append_Text_UTF8 (Builder, S);
          After_Value;
       end Resolve;
 

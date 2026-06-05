@@ -1,5 +1,7 @@
 with JSON.Parsers;
 
+with LML.Input.Emit;
+with LML.Input.Walk;
 with LML.Output.Yeison;
 
 package body LML.Input.JSON is
@@ -9,13 +11,83 @@ package body LML.Input.JSON is
                             Default_Maximum_Depth => 16,
                             Check_Duplicate_Keys  => True);
 
+   --------------
+   -- Classify --
+   --------------
+
+   function Classify (This : Types.JSON_Value) return Walk.Walk_Category is
+      use all type Types.Value_Kind;
+   begin
+      case This.Kind is
+         when Object_Kind => return Walk.Map;
+         when Array_Kind  => return Walk.Vec;
+         when others      => return Walk.Scalar;
+      end case;
+   end Classify;
+
+   -----------------
+   -- Emit_Scalar --
+   -----------------
+
+   procedure Emit_Scalar (This    : Types.JSON_Value;
+                          Builder : in out Output.Builder'Class)
+   is
+      use all type Types.Value_Kind;
+   begin
+      case This.Kind is
+         when Null_Kind    => Builder.Append_Nil;
+         when Boolean_Kind => Emit.Append_Bool (Builder, This.Value);
+         when Integer_Kind => Emit.Append_Int (Builder, This.Value);
+         when Float_Kind   => Emit.Append_Real (Builder, This.Value);
+         when String_Kind  => Emit.Append_Text_UTF8 (Builder, This.Value);
+         when Object_Kind | Array_Kind =>
+            raise Program_Error with "not a scalar";
+      end case;
+   end Emit_Scalar;
+
+   -------------------
+   -- Iterate_Pairs --
+   -------------------
+
+   procedure Iterate_Pairs
+     (This    : Types.JSON_Value;
+      Process : not null access
+                  procedure (Key : Text; Value : Types.JSON_Value))
+   is
+   begin
+      for Key of This loop
+         Process (Decode (Key.Value), This.Get (Key.Value));
+      end loop;
+   end Iterate_Pairs;
+
+   -------------------
+   -- Iterate_Items --
+   -------------------
+
+   procedure Iterate_Items
+     (This    : Types.JSON_Value;
+      Process : not null access procedure (Value : Types.JSON_Value))
+   is
+   begin
+      for Obj of This loop
+         Process (Obj);
+      end loop;
+   end Iterate_Items;
+
+   procedure Walk_JSON is new Walk.Walk
+     (Node          => Types.JSON_Value,
+      Classify      => Classify,
+      Emit_Scalar   => Emit_Scalar,
+      Iterate_Pairs => Iterate_Pairs,
+      Iterate_Items => Iterate_Items);
+
    -----------------
    -- From_String --
    -----------------
 
    function From_String (Image : Text) return Yeison.Any
    is
-      Parser : Parsers.Parser := Parsers.Create (Encode (Image));
+      Parser  : Parsers.Parser := Parsers.Create (Encode (Image));
       Builder : Output.Yeison.Builder;
    begin
       return Result : Yeison.Any do
@@ -31,45 +103,8 @@ package body LML.Input.JSON is
    procedure From_JSON (This    : Types.JSON_Value;
                         Builder : in out Output.Builder'Class)
    is
-      use all type Types.Value_Kind;
    begin
-      case This.Kind is
-         when Null_Kind =>
-            Builder.Append_Nil;
-
-         when Boolean_Kind =>
-            Builder.Append (Scalars.New_Bool (This.Value));
-
-         when Integer_Kind =>
-            Builder.Append
-              (Scalars.New_Int (This.Value));
-
-         when Float_Kind =>
-            Builder.Append
-              (Scalars.New_Real (Yeison.Reals.New_Real (This.Value)));
-
-         when String_Kind =>
-            Builder.Append (Scalars.New_Text (Decode (This.Value)));
-
-         when Object_Kind =>
-            Builder.Begin_Map;
-
-            for Key of This loop
-               Builder.Insert (Decode (Key.Value));
-               From_JSON (This.Get (Key.Value), Builder);
-            end loop;
-
-            Builder.End_Map;
-
-         when Array_Kind =>
-            Builder.Begin_Vec;
-
-            for Obj of This loop
-               From_JSON (Obj, Builder);
-            end loop;
-
-            Builder.End_Vec;
-      end case;
+      Walk_JSON (This, Builder);
    end From_JSON;
 
    ---------------

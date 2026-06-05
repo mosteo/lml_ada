@@ -1,6 +1,94 @@
 with Ada.Strings.Unbounded;
 
+with LML.Input.Emit;
+with LML.Input.Walk;
+
 package body LML.Input.TOML is
+
+   --------------
+   -- Classify --
+   --------------
+
+   function Classify (This : TOML_Value) return Walk.Walk_Category is
+      use Standard.TOML;
+   begin
+      case This.Kind is
+         when TOML_Table => return Walk.Map;
+         when TOML_Array => return Walk.Vec;
+         when others     => return Walk.Scalar;
+      end case;
+   end Classify;
+
+   -----------------
+   -- Emit_Scalar --
+   -----------------
+
+   procedure Emit_Scalar (This    : TOML_Value;
+                          Builder : in out Output.Builder'Class)
+   is
+      use Standard.TOML;
+   begin
+      case This.Kind is
+         when TOML_Boolean =>
+            Emit.Append_Bool (Builder, This.As_Boolean);
+
+         when TOML_Integer =>
+            Emit.Append_Int (Builder, Yeison.Big_Int (This.As_Integer));
+
+         when TOML_Float =>
+            case This.As_Float.Kind is
+               when Regular =>
+                  Emit.Append_Real
+                    (Builder, Yeison.Big_Real (This.As_Float.Value));
+               when Infinity =>
+                  Emit.Append_Inf (Builder, This.As_Float.Positive);
+               when NaN =>
+                  Emit.Append_NaN (Builder);
+            end case;
+
+         when TOML_String =>
+            Emit.Append_Text_UTF8 (Builder, This.As_String);
+
+         when others =>
+            raise Program_Error with "unsupported type: " & This.Kind'Image;
+      end case;
+   end Emit_Scalar;
+
+   -------------------
+   -- Iterate_Pairs --
+   -------------------
+
+   procedure Iterate_Pairs
+     (This    : TOML_Value;
+      Process : not null access procedure (Key : Text; Value : TOML_Value))
+   is
+      use Ada.Strings.Unbounded;
+   begin
+      for Key of This.Keys loop
+         Process (Decode (To_String (Key)), This.Get (Key));
+      end loop;
+   end Iterate_Pairs;
+
+   -------------------
+   -- Iterate_Items --
+   -------------------
+
+   procedure Iterate_Items
+     (This    : TOML_Value;
+      Process : not null access procedure (Value : TOML_Value))
+   is
+   begin
+      for I in 1 .. This.Length loop
+         Process (This.Item (I));
+      end loop;
+   end Iterate_Items;
+
+   procedure Walk_TOML is new Walk.Walk
+     (Node          => TOML_Value,
+      Classify      => Classify,
+      Emit_Scalar   => Emit_Scalar,
+      Iterate_Pairs => Iterate_Pairs,
+      Iterate_Items => Iterate_Items);
 
    -----------------
    -- From_String --
@@ -24,75 +112,12 @@ package body LML.Input.TOML is
    procedure From_TOML (This    : TOML_Value;
                         Builder : in out Output.Builder'Class)
    is
-
-      ---------------
-      -- From_TOML --
-      ---------------
-
-      procedure From_TOML (This : TOML_Value) is
-         use Ada.Strings.Unbounded;
-         use Standard.TOML;
-      begin
-         case This.Kind is
-            when TOML_Boolean =>
-               Builder.Append (Scalars.New_Bool (This.As_Boolean));
-
-            when TOML_Integer =>
-               Builder.Append
-                 (Scalars.New_Int (Yeison.Big_Int (This.As_Integer)));
-
-            when TOML_Float =>
-               case This.As_Float.Kind is
-                  when Regular =>
-                     Builder.Append
-                       (Scalars.New_Real
-                          (Yeison.Reals.New_Real
-                               (Yeison.Big_Real
-                                    (This.As_Float.Value))));
-                  when Infinity =>
-                     Builder.Append
-                       (Scalars.New_Real
-                          (Yeison.Reals.New_Infinite
-                               (This.As_Float.Positive)));
-                  when NaN =>
-                     Builder.Append
-                       (Scalars.New_Real
-                          (Yeison.Reals.New_NaN));
-               end case;
-
-            when TOML_String =>
-               Builder.Append (Scalars.New_Text (Decode (This.As_String)));
-
-            when TOML_Table =>
-               Builder.Begin_Map;
-
-               for Key of This.Keys loop
-                  Builder.Insert (Decode (To_String (Key)));
-                  From_TOML (This.Get (Key));
-               end loop;
-
-               Builder.End_Map;
-
-            when TOML_Array =>
-               Builder.Begin_Vec;
-
-               for I in 1 .. This.Length loop
-                  From_TOML (This.Item (I));
-               end loop;
-
-               Builder.End_Vec;
-
-            when others =>
-               raise Program_Error with "unsupported type: " & This.Kind'Image;
-         end case;
-      end From_TOML;
-
    begin
       if not This.Is_Present then
          raise Constraint_Error with "Input TOML value is null";
       end if;
 
-      From_TOML (This);
+      Walk_TOML (This, Builder);
    end From_TOML;
 
    ---------------
