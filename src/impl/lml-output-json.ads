@@ -1,5 +1,7 @@
 with Yeison_12;
 
+with LML.Output.Tree;
+
 package LML.Output.JSON with Preelaborate is
 
    package Yeison renames Yeison_12;
@@ -8,45 +10,52 @@ package LML.Output.JSON with Preelaborate is
 
    type Builder is new Parent with private;
 
-   procedure Clear (This : in out Builder);
-
-   overriding function To_Text (This : Builder) return Text;
+   --  To_Text (overridden in the generic base) and the Output.Builder
+   --  primitives are inherited; nothing format-specific is added here.
 
 private
 
-   package Value_Stacks is new
-     Ada.Containers.Indefinite_Doubly_Linked_Lists (Yeison.Any, Yeison."=");
+   use type Yeison.Kinds;
 
-   type Builder is new Parent with record
-      Stack : Value_Stacks.List;
-      --  Values as we go building them. When a value is completed, it is
-      --  inserted in its parent.
-      Root  : Yeison.Any;
-      --  Whatever remains after completion
-   end record with
-     Type_Invariant => (if not Stack.Is_Empty then not Root.Has_Value);
+   --  Operations for the generic tree builder, with Yeison.Any as the node.
 
-   -------------------
-   -- Current_Value --
-   -------------------
+   function No_Node return Yeison.Any is (Yeison.Make.Nil);
 
-   function Current_Root (This : Builder) return Yeison.Any
-   is (if This.Root.Has_Value
-       then This.Root
-       else This.Stack.First_Element);
+   function Has_Value (N : Yeison.Any) return Boolean is (N.Has_Value);
 
-   overriding function Make return Builder is (others => <>);
+   function Is_Composite (N : Yeison.Any) return Boolean
+   is (N.Kind in Yeison.Composite_Kinds);
 
-   overriding procedure Append_Impl (This : in out Builder; Val : Scalar);
+   function Is_Map (N : Yeison.Any) return Boolean
+   is (N.Kind = Yeison.Map_Kind);
 
-   overriding procedure Append_Nil_Impl (This : in out Builder);
+   function New_Scalar (Val : Scalar) return Yeison.Any
+   is (Yeison.Make.Scalar (Val));
 
-   overriding procedure Begin_Map_Impl (This : in out Builder);
+   function New_Nil return Yeison.Any is (Yeison.Make.Nil);
 
-   overriding procedure End_Map_Impl (This : in out Builder);
+   function Image (Root : Yeison.Any) return Text
+   is (Root.Image (Format => Yeison.JSON));
 
-   overriding procedure Begin_Vec_Impl (This : in out Builder);
+   procedure Set_In_Map
+     (Map : in out Yeison.Any; Key : Text; Val : Yeison.Any);
 
-   overriding procedure End_Vec_Impl (This : in out Builder);
+   procedure Append_To_Vec (Vec : in out Yeison.Any; Val : Yeison.Any);
+
+   package Trees is new Output.Tree
+     (Node          => Yeison.Any,
+      No_Node       => No_Node,
+      Has_Value     => Has_Value,
+      Is_Composite  => Is_Composite,
+      Is_Map        => Is_Map,
+      Empty_Map     => Yeison.Empty_Map,
+      Empty_Vec     => Yeison.Empty_Vec,
+      New_Scalar    => New_Scalar,
+      New_Nil       => New_Nil,
+      Set_In_Map    => Set_In_Map,
+      Append_To_Vec => Append_To_Vec,
+      Image         => Image);
+
+   type Builder is new Trees.Builder with null record;
 
 end LML.Output.JSON;
