@@ -58,32 +58,11 @@ private
 
    procedure End_Vec_Impl (This : in out Builder) is null;
 
-   procedure On_Completion (This : in out Builder) is null;
-
    type Builder is tagged record
-      Level : Natural := 0;
-      First : Boolean := True;
-      Keys  : Key_Stacks.List;
+      Keys : Key_Stacks.List;
    end record;
 
    function Pop (This : in out Builder'Class) return Text;
    --  Removes and returns the first pending key to be inserted in parent table
-
-   --  Following subprograms are intended to simplify outputting "on the fly",
-   --  not needed for outputters that build the data structure in memory.
-
-   -------------------
-   -- Current_Level --
-   -------------------
-
-   function Current_Level (This : Builder'Class) return Natural
-   is (This.Level);
-
-   ----------------------------
-   -- Is_First_In_Collection --
-   ----------------------------
-
-   function Is_First_In_Collection (This : Builder'Class) return Boolean
-   is (This.First);
 
 end LML.Output;

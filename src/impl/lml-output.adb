@@ -6,17 +6,6 @@ with LML.Output.Factory;
 
 package body LML.Output is
 
-   ----------------------
-   -- Check_Completion --
-   ----------------------
-
-   procedure Check_Completion (This : in out Builder'Class) is
-   begin
-      if This.Level = 0 then
-         This.On_Completion;
-      end if;
-   end Check_Completion;
-
    ------------
    -- Append --
    ------------
@@ -24,8 +13,6 @@ package body LML.Output is
    procedure Append (This : in out Builder'Class; Val : Scalar) is
    begin
       This.Append_Impl (Val);
-      This.First := False;
-      This.Check_Completion;
    end Append;
 
    ----------------
@@ -35,8 +22,6 @@ package body LML.Output is
    procedure Append_Nil (This : in out Builder'Class) is
    begin
       This.Append_Nil_Impl;
-      This.First := False;
-      This.Check_Completion;
    end Append_Nil;
 
    ------------
@@ -56,8 +41,6 @@ package body LML.Output is
    procedure Begin_Map (This : in out Builder'Class) is
    begin
       This.Begin_Map_Impl;
-      This.First := True;
-      This.Level := This.Level + 1;
    end Begin_Map;
 
    -------------
@@ -67,8 +50,6 @@ package body LML.Output is
    procedure End_Map (This : in out Builder'Class) is
    begin
       This.End_Map_Impl;
-      This.Level := This.Level - 1;
-      This.Check_Completion;
    end End_Map;
 
    ---------------
@@ -78,8 +59,6 @@ package body LML.Output is
    procedure Begin_Vec (This : in out Builder'Class) is
    begin
       This.Begin_Vec_Impl;
-      This.First := True;
-      This.Level := This.Level + 1;
    end Begin_Vec;
 
    -------------
@@ -89,8 +68,6 @@ package body LML.Output is
    procedure End_Vec (This : in out Builder'Class) is
    begin
       This.End_Vec_Impl;
-      This.Level := This.Level - 1;
-      This.Check_Completion;
    end End_Vec;
 
    ---------
