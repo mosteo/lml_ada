@@ -5,7 +5,7 @@ pragma Style_Checks (Off);
 package Lml_Config is
    pragma Pure;
 
-   Crate_Version : constant String := "0.2.0";
+   Crate_Version : constant String := "0.3.0";
    Crate_Name : constant String := "lml";
 
    Alire_Host_OS : constant String := "linux";
@@ -15,6 +15,6 @@ package Lml_Config is
    Alire_Host_Distro : constant String := "ubuntu";
 
    type Build_Profile_Kind is (release, validation, development);
-   Build_Profile : constant Build_Profile_Kind := validation;
+   Build_Profile : constant Build_Profile_Kind := development;
 
 end Lml_Config;

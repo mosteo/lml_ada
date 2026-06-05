@@ -25,7 +25,8 @@ package LML.Schemas with Preelaborate is
 
    package Yeison renames Yeison_12;
 
-   type Result (<>) is private;
+   type Result (<>) is tagged private;
+   --  To be able to apply the following methods
 
    function Is_Valid (This : Result) return Boolean;
 
@@ -36,29 +37,28 @@ package LML.Schemas with Preelaborate is
 
    function Validate (Data, Schema : Yeison.Any) return Result;
 
-   function Is_Valid (Data, Schema : Yeison.Any) return Boolean
-   is (Is_Valid (Validate (Data, Schema)));
-   --  Convenience for callers that do not need the failure message.
-
 private
 
    package WWU renames Ada.Strings.Wide_Wide_Unbounded;
 
-   --  Text (Wide_Wide_String) is unconstrained, so the message is held as an
-   --  unbounded string and the discriminant selects whether it is present.
-
    --  A default discriminant keeps the type mutable, so the body can use a
    --  single Result accumulator and overwrite it as keywords are checked.
-   type Result (Valid : Boolean := True) is record
+   type Result_Data (Valid : Boolean := True) is record
       case Valid is
          when True  => null;
          when False => Message : WWU.Unbounded_Wide_Wide_String;
       end case;
    end record;
 
-   function Is_Valid (This : Result) return Boolean is (This.Valid);
+   type Result is tagged record
+      Data : Result_Data;
+   end record;
+
+   function Is_Valid (This : Result) return Boolean is (This.Data.Valid);
 
    function Error (This : Result) return Text
-   is (if This.Valid then "" else WWU.To_Wide_Wide_String (This.Message));
+   is (if This.Data.Valid
+       then ""
+       else WWU.To_Wide_Wide_String (This.Data.Message));
 
 end LML.Schemas;

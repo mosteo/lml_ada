@@ -13,12 +13,12 @@ package body LML.Schemas is
    --  Result constructors --
    --------------------------
 
-   Pass : constant Result := (Valid => True);
+   Pass : constant Result := (Data => (Valid => True));
 
    function Fail (Path, Reason : Text) return Result is
-     ((Valid   => False,
-       Message  => WWU.To_Unbounded_Wide_Wide_String
-         ((if Path = "" then "(root)" else Path) & ": " & Reason)));
+     ((Data => (Valid   => False,
+                Message  => WWU.To_Unbounded_Wide_Wide_String
+                  ((if Path = "" then "(root)" else Path) & ": " & Reason))));
 
    ---------------
    --  Helpers  --
@@ -187,7 +187,7 @@ package body LML.Schemas is
                        Check (Data.Get (Key), Props.Get (Key),
                               Path & "/" & Key.As_Text);
                   begin
-                     if not R.Valid then
+                     if not R.Data.Valid then
                         return R;
                      end if;
                   end;
@@ -220,7 +220,7 @@ package body LML.Schemas is
                           Check (Data.Get (Key), AP,
                                  Path & "/" & Key.As_Text);
                      begin
-                        if not R.Valid then
+                        if not R.Data.Valid then
                            return R;
                         end if;
                      end;
@@ -272,7 +272,7 @@ package body LML.Schemas is
                            Pref.Get (Make.Int (I)),
                            Path & "/" & Idx (I));
                begin
-                  if not R.Valid then
+                  if not R.Data.Valid then
                      return R;
                   end if;
                end;
@@ -299,7 +299,7 @@ package body LML.Schemas is
                        Check (Data.Get (Make.Int (I)), It,
                               Path & "/" & Idx (I));
                   begin
-                     if not R.Valid then
+                     if not R.Data.Valid then
                         return R;
                      end if;
                   end;
@@ -356,7 +356,7 @@ package body LML.Schemas is
               (if Has_Max then Field (Schema, "maxContains").As_Int else 0);
          begin
             for E of Data loop
-               if Check (E, Sub, Path).Valid then
+               if Check (E, Sub, Path).Data.Valid then
                   Count := Count + 1;
                end if;
             end loop;
@@ -466,7 +466,7 @@ package body LML.Schemas is
                declare
                   R : constant Result := Check (Data, Sub, Path);
                begin
-                  if not R.Valid then
+                  if not R.Data.Valid then
                      return R;
                   end if;
                end;
@@ -480,7 +480,7 @@ package body LML.Schemas is
             Found : Boolean := False;
          begin
             for Sub of Subs loop
-               if Check (Data, Sub, Path).Valid then
+               if Check (Data, Sub, Path).Data.Valid then
                   Found := True;
                end if;
             end loop;
@@ -496,7 +496,7 @@ package body LML.Schemas is
             Count : Natural := 0;
          begin
             for Sub of Subs loop
-               if Check (Data, Sub, Path).Valid then
+               if Check (Data, Sub, Path).Data.Valid then
                   Count := Count + 1;
                end if;
             end loop;
@@ -508,7 +508,7 @@ package body LML.Schemas is
       end if;
 
       if Schema.Has_Key ("not")
-        and then Check (Data, Field (Schema, "not"), Path).Valid
+        and then Check (Data, Field (Schema, "not"), Path).Data.Valid
       then
          return Fail (Path, "value must not match the 'not' subschema");
       end if;
@@ -527,7 +527,7 @@ package body LML.Schemas is
          return Pass;
       end if;
 
-      if Check (Data, Field (Schema, "if"), Path).Valid then
+      if Check (Data, Field (Schema, "if"), Path).Data.Valid then
          if Schema.Has_Key ("then") then
             return Check (Data, Field (Schema, "then"), Path);
          end if;
@@ -565,19 +565,19 @@ package body LML.Schemas is
       end if;
 
       R := Check_Type (Data, Schema, Path);
-      if not R.Valid then return R; end if;
+      if not R.Data.Valid then return R; end if;
       R := Check_Enum_Const (Data, Schema, Path);
-      if not R.Valid then return R; end if;
+      if not R.Data.Valid then return R; end if;
       R := Check_Object (Data, Schema, Path);
-      if not R.Valid then return R; end if;
+      if not R.Data.Valid then return R; end if;
       R := Check_Array (Data, Schema, Path);
-      if not R.Valid then return R; end if;
+      if not R.Data.Valid then return R; end if;
       R := Check_String (Data, Schema, Path);
-      if not R.Valid then return R; end if;
+      if not R.Data.Valid then return R; end if;
       R := Check_Number (Data, Schema, Path);
-      if not R.Valid then return R; end if;
+      if not R.Data.Valid then return R; end if;
       R := Check_Combinators (Data, Schema, Path);
-      if not R.Valid then return R; end if;
+      if not R.Data.Valid then return R; end if;
       R := Check_Conditional (Data, Schema, Path);
       return R;
    end Check;

@@ -19,7 +19,7 @@ begin
    begin
       declare
          Result : constant Boolean :=
-           LML.Schemas.Is_Valid (Y_Int (1), Schema);
+           LML.Schemas.Validate (Y_Int (1), Schema).Is_Valid;
       begin
          pragma Unreferenced (Result);
       end;
