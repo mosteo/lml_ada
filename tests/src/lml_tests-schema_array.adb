@@ -1,9 +1,8 @@
-with LML.Schemas;
-
 with Lml_Tests.Support;
 
 --  Array keywords: items, min/maxItems, uniqueItems, prefixItems and
---  contains/minContains.
+--  contains/minContains. Negative cases assert the diagnostic (and, where
+--  applicable, the offending element index in the instance path).
 
 procedure Lml_Tests.Schema_Array is
 
@@ -24,14 +23,16 @@ begin
 
       D.Append (Y_Int (1));
       D.Append (Y_Int (2));
-      Assert (LML.Schemas.Is_Valid (D, S), "valid number array");
+      Assert_Valid (D, S, "valid number array");
 
       declare
          Bad : Yeison.Any := Y_Vec;
       begin
          Bad.Append (Y_Int (1));
          Bad.Append (Y_Str ("x"));
-         Assert (not LML.Schemas.Is_Valid (Bad, S), "items type mismatch");
+         Assert_Invalid (Bad, S,
+                         "/2: expected number, found string",
+                         "items type mismatch, with index");
       end;
 
       declare
@@ -39,13 +40,15 @@ begin
       begin
          Dup.Append (Y_Int (1));
          Dup.Append (Y_Int (1));
-         Assert (not LML.Schemas.Is_Valid (Dup, S), "duplicate items");
+         Assert_Invalid (Dup, S,
+                         "array items are not unique", "duplicate items");
       end;
 
       declare
          Empty : constant Yeison.Any := Y_Vec;
       begin
-         Assert (not LML.Schemas.Is_Valid (Empty, S), "below minItems");
+         Assert_Invalid (Empty, S,
+                         "array is shorter than minItems", "below minItems");
       end;
 
       declare
@@ -55,7 +58,8 @@ begin
          Big.Append (Y_Int (2));
          Big.Append (Y_Int (3));
          Big.Append (Y_Int (4));
-         Assert (not LML.Schemas.Is_Valid (Big, S), "above maxItems");
+         Assert_Invalid (Big, S,
+                         "array is longer than maxItems", "above maxItems");
       end;
    end;
 
@@ -75,15 +79,16 @@ begin
 
       D.Append (Y_Str ("a"));
       D.Append (Y_Int (2));
-      Assert (LML.Schemas.Is_Valid (D, S), "prefixItems valid");
+      Assert_Valid (D, S, "prefixItems valid");
 
       declare
          Bad : Yeison.Any := Y_Vec;
       begin
          Bad.Append (Y_Int (1));
          Bad.Append (Y_Int (2));
-         Assert (not LML.Schemas.Is_Valid (Bad, S),
-                 "prefixItems first element wrong type");
+         Assert_Invalid (Bad, S,
+                         "/1: expected string, found integer",
+                         "prefixItems first element wrong type");
       end;
    end;
 
@@ -100,14 +105,16 @@ begin
       D.Append (Y_Str ("a"));
       D.Append (Y_Int (1));
       D.Append (Y_Int (2));
-      Assert (LML.Schemas.Is_Valid (D, S), "contains >= 2 numbers");
+      Assert_Valid (D, S, "contains >= 2 numbers");
 
       declare
          Few : Yeison.Any := Y_Vec;
       begin
          Few.Append (Y_Str ("a"));
          Few.Append (Y_Int (1));
-         Assert (not LML.Schemas.Is_Valid (Few, S), "contains < 2 numbers");
+         Assert_Invalid (Few, S,
+                         "fewer than minContains matching items",
+                         "contains < 2 numbers");
       end;
    end;
 end Lml_Tests.Schema_Array;

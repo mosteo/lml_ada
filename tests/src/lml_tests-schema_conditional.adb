@@ -1,5 +1,3 @@
-with LML.Schemas;
-
 with Lml_Tests.Support;
 
 --  if/then/else: the `if` subschema is evaluated silently and selects which
@@ -8,6 +6,9 @@ with Lml_Tests.Support;
 --    if   { properties: { kind: { const: "int" } }, required: [kind] }
 --    then { required: [ival] }
 --    else { required: [sval] }
+--
+--  Negative cases assert that the selected branch's `required` diagnostic
+--  surfaces, confirming the right branch was taken.
 
 procedure Lml_Tests.Schema_Conditional is
 
@@ -45,15 +46,16 @@ begin
    begin
       Put (D, "kind", Y_Str ("int"));
       Put (D, "ival", Y_Int (3));
-      Assert (LML.Schemas.Is_Valid (D, Schema), "then branch satisfied");
+      Assert_Valid (D, Schema, "then branch satisfied");
    end;
 
    declare
       D : Yeison.Any := Y_Map;
    begin
       Put (D, "kind", Y_Str ("int"));
-      Assert (not LML.Schemas.Is_Valid (D, Schema),
-              "then branch missing ival");
+      Assert_Invalid (D, Schema,
+                      "missing required property ival",
+                      "then branch missing ival");
    end;
 
    --  kind /= int -> the `else` branch applies (sval required)
@@ -61,8 +63,10 @@ begin
       D : Yeison.Any := Y_Map;
    begin
       Put (D, "kind", Y_Str ("str"));
-      Assert (not LML.Schemas.Is_Valid (D, Schema), "else branch needs sval");
+      Assert_Invalid (D, Schema,
+                      "missing required property sval",
+                      "else branch needs sval");
       Put (D, "sval", Y_Str ("x"));
-      Assert (LML.Schemas.Is_Valid (D, Schema), "else branch satisfied");
+      Assert_Valid (D, Schema, "else branch satisfied");
    end;
 end Lml_Tests.Schema_Conditional;

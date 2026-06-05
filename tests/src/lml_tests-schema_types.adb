@@ -1,45 +1,47 @@
-with LML.Schemas;
-
 with Lml_Tests.Support;
 
 --  The `type` keyword, one assertion per JSON-Schema type name, plus the
 --  number/integer distinction (an integral-valued real counts as integer)
---  and the array-of-names union form.
+--  and the array-of-names union form. Negative cases pin down the diagnostic,
+--  not merely the verdict.
 
 procedure Lml_Tests.Schema_Types is
 
    use Lml_Tests.Support;
 
-   function Type_Schema (Name : Text) return Yeison.Any is
+   function TS (Name : Text) return Yeison.Any is
       S : Yeison.Any := Y_Map;
    begin
       Put (S, "type", Y_Str (Name));
       return S;
-   end Type_Schema;
-
-   function OK (Data : Yeison.Any; Name : Text) return Boolean is
-     (LML.Schemas.Is_Valid (Data, Type_Schema (Name)));
+   end TS;
 
 begin
-   Assert (OK (Y_Str ("hi"), "string"), "string accepts string");
-   Assert (not OK (Y_Int (1), "string"), "string rejects int");
+   Assert_Valid (Y_Str ("hi"), TS ("string"), "string accepts string");
+   Assert_Invalid (Y_Int (1), TS ("string"),
+                   "expected string, found integer", "string rejects int");
 
-   Assert (OK (Y_Bool (True), "boolean"), "boolean accepts bool");
-   Assert (not OK (Y_Str ("x"), "boolean"), "boolean rejects string");
+   Assert_Valid (Y_Bool (True), TS ("boolean"), "boolean accepts bool");
+   Assert_Invalid (Y_Str ("x"), TS ("boolean"),
+                   "expected boolean, found string", "boolean rejects str");
 
-   Assert (OK (Y_Nil, "null"), "null accepts nil");
-   Assert (not OK (Y_Int (0), "null"), "null rejects int");
+   Assert_Valid (Y_Nil, TS ("null"), "null accepts nil");
+   Assert_Invalid (Y_Int (0), TS ("null"),
+                   "expected null, found integer", "null rejects int");
 
-   Assert (OK (Y_Map, "object"), "object accepts map");
-   Assert (not OK (Y_Vec, "object"), "object rejects vec");
-   Assert (OK (Y_Vec, "array"), "array accepts vec");
-   Assert (not OK (Y_Map, "array"), "array rejects map");
+   Assert_Valid (Y_Map, TS ("object"), "object accepts map");
+   Assert_Invalid (Y_Vec, TS ("object"),
+                   "expected object, found array", "object rejects vec");
+   Assert_Valid (Y_Vec, TS ("array"), "array accepts vec");
+   Assert_Invalid (Y_Map, TS ("array"),
+                   "expected array, found object", "array rejects map");
 
-   Assert (OK (Y_Int (3), "integer"), "integer accepts int");
-   Assert (OK (Y_Int (3), "number"), "number accepts int");
-   Assert (OK (Y_Real (3.5), "number"), "number accepts real");
-   Assert (not OK (Y_Real (3.5), "integer"), "integer rejects 3.5");
-   Assert (OK (Y_Real (4.0), "integer"), "integer accepts integral real");
+   Assert_Valid (Y_Int (3), TS ("integer"), "integer accepts int");
+   Assert_Valid (Y_Int (3), TS ("number"), "number accepts int");
+   Assert_Valid (Y_Real (3.5), TS ("number"), "number accepts real");
+   Assert_Invalid (Y_Real (3.5), TS ("integer"),
+                   "expected integer, found number", "integer rejects 3.5");
+   Assert_Valid (Y_Real (4.0), TS ("integer"), "integer accepts 4.0");
 
    --  type as an array of names (union)
    declare
@@ -49,11 +51,10 @@ begin
       Names.Append (Y_Str ("string"));
       Names.Append (Y_Str ("null"));
       Put (S, "type", Names);
-      Assert (LML.Schemas.Is_Valid (Y_Str ("a"), S),
-              "type union accepts string");
-      Assert (LML.Schemas.Is_Valid (Y_Nil, S),
-              "type union accepts null");
-      Assert (not LML.Schemas.Is_Valid (Y_Int (1), S),
-              "type union rejects int");
+      Assert_Valid (Y_Str ("a"), S, "type union accepts string");
+      Assert_Valid (Y_Nil, S, "type union accepts null");
+      Assert_Invalid (Y_Int (1), S,
+                      "type integer is not in the allowed set",
+                      "type union rejects int");
    end;
 end Lml_Tests.Schema_Types;

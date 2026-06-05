@@ -3,7 +3,6 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 
 with LML;
-with LML.Schemas;
 with LML.Input.YAML.Initialization;
 
 with Lml_Tests.Support;
@@ -63,8 +62,7 @@ begin
       Examples : constant Yeison.Any := At_Key (Schema, "examples");
    begin
       for Ex of Examples loop
-         Assert (LML.Schemas.Is_Valid (Ex, Schema),
-                 "schema's own example must validate");
+         Assert_Valid (Ex, Schema, "schema's own example must validate");
       end loop;
    end;
 
@@ -73,8 +71,9 @@ begin
       D : Yeison.Any := Y_Map;
    begin
       Put (D, "Unknown_Pragma", Y_Map);
-      Assert (not LML.Schemas.Is_Valid (D, Schema),
-              "unknown top-level pragma must be rejected");
+      Assert_Invalid (D, Schema,
+                      "/Unknown_Pragma: additional property not allowed",
+                      "unknown top-level pragma must be rejected");
    end;
 
    --  Timeout as a string: rejected by type:number.
@@ -84,8 +83,9 @@ begin
    begin
       Put (Inner, "Timeout", Y_Str ("soon"));
       Put (D, "Alire_Test", Inner);
-      Assert (not LML.Schemas.Is_Valid (D, Schema),
-              "Timeout as a string must be rejected");
+      Assert_Invalid (D, Schema,
+                      "/Alire_Test/Timeout: expected number, found string",
+                      "Timeout as a string must be rejected");
    end;
 
    --  Auxiliary_File:true with another key: fails the then/maxProperties rule.
@@ -96,8 +96,9 @@ begin
       Put (Inner, "Auxiliary_File", Y_Bool (True));
       Put (Inner, "Name", Y_Str ("x"));
       Put (D, "Alire_Test", Inner);
-      Assert (not LML.Schemas.Is_Valid (D, Schema),
-              "Auxiliary_File with extra key must fail maxProperties");
+      Assert_Invalid (D, Schema,
+                      "/Alire_Test: object has more than maxProperties",
+                      "Auxiliary_File with extra key must fail maxProperties");
    end;
 
    --  Auxiliary_File:true alone: valid.
@@ -107,7 +108,6 @@ begin
    begin
       Put (Inner, "Auxiliary_File", Y_Bool (True));
       Put (D, "Alire_Test", Inner);
-      Assert (LML.Schemas.Is_Valid (D, Schema),
-              "Auxiliary_File alone must be valid");
+      Assert_Valid (D, Schema, "Auxiliary_File alone must be valid");
    end;
 end Lml_Tests.Schema_Sample_Pragmas;
