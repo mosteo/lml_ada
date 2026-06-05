@@ -1,0 +1,6 @@
+{
+  "Alire_Test": {
+    "Name": "Has a stray key",
+    "Bogus": 1
+  }
+}

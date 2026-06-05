@@ -1,0 +1,21 @@
+name = "lml_validate"
+description = "Validate a file against a schema in another file"
+version = "0.1.0-dev"
+
+authors = ["Alejandro R. Mosteo"]
+maintainers = ["Alejandro R. Mosteo <amosteo@unizar.es>"]
+maintainers-logins = ["mosteo"]
+licenses = "MIT OR Apache-2.0 WITH LLVM-exception"
+website = ""
+tags = ["json", "yaml", "toml", "schema", "validation"]
+
+executables = ["lml_validate"]
+
+[[depends-on]]
+lml = "*"
+
+[[pins]]
+lml = { path = ".." }
+
+[test]
+runner = "alire"

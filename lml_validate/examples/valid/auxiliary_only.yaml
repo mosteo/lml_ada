@@ -1,0 +1,4 @@
+# Valid: Auxiliary_File marks a support unit and, being true, must be the
+# sole key (the schema's if/then enforces maxProperties: 1 in that case).
+Alire_Test:
+  Auxiliary_File: true

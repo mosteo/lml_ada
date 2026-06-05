@@ -1,0 +1,6 @@
+# Valid: a regular test with all three describing keys. Auxiliary_File is
+# absent, so the conditional maxProperties rule does not apply.
+Alire_Test:
+  Name: "A test"
+  Should_Fail: true
+  Timeout: 11.1
