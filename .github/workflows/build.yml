@@ -19,14 +19,8 @@ jobs:
 
     - uses: alire-project/setup-alire@v6
       with:
-        version: 2.1.1
-        toolchain: gnat_native^14 gprbuild
-
-    # - name: Prepare pin
-    #   run: |
-    #     git clone https://github.com/mosteo/yeison --branch main
-    #     alr pin yeison_12 --use=yeison/yeison_12
-    #     alr -C test/ pin yeison_12 --use=../yeison/yeison_12
+        version: nightly
+        msys2: false # Windows fails otherwise because C: in tar
 
     - name: Build library
       run: alr build
@@ -35,11 +29,6 @@ jobs:
       run: alr -C test/ run
 
     # New testsuite
-
-    - uses: alire-project/setup-alire@v6
-      with:
-        version: nightly
-        toolchain: gnat_native^14 gprbuild
 
     - name: Run new tests
       run: alr test
