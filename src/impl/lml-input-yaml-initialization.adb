@@ -18,9 +18,9 @@ package body LML.Input.YAML.Initialization is
       Ref      : constant Parser.Reference := Parser.New_Parser;
       Instance : Parser.Instance  renames Ref.Value;
 
-      --  For every open collection we track whether it is a mapping and, if so,
-      --  whether the next scalar is a key (mappings emit keys and values as a
-      --  flat alternating event stream).
+      --  For every open collection we track whether it is a mapping and, if
+      --  so, whether the next scalar is a key (mappings emit keys and values
+      --  as a flat alternating event stream).
       type Frame is record
          Is_Map        : Boolean;
          Expecting_Key : Boolean;
