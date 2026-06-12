@@ -31,6 +31,19 @@ jobs:
     #     alr pin yeison_12 --use=yeison/yeison_12
     #     alr -C test/ pin yeison_12 --use=../yeison/yeison_12
 
+    - name: Use system ld (old bundled binutils vs modern glibc)
+      if: runner.os == 'Linux'
+      run: |
+        # GNAT <= 11 toolchains bundle binutils < 2.38, which cannot
+        # read the .relr.dyn section of glibc >= 2.36 (ubuntu >= 24.04).
+        # The system linker works fine with old gcc, so use it instead.
+        # /usr/bin/ld is hardcoded because the toolchain's own ld may
+        # shadow it on PATH.
+        for ld in ~/.local/share/alire/toolchains/gnat_native_*/*/bin/ld
+        do
+          ln -sf /usr/bin/ld "$ld"
+        done
+
     - name: Build library
       run: alr build
 
@@ -43,6 +56,14 @@ jobs:
       with:
         version: nightly
         toolchain: gnat_native${{ matrix.gnat }} gprbuild
+
+    - name: Use system ld (after nightly setup, see above)
+      if: runner.os == 'Linux'
+      run: |
+        for ld in ~/.local/share/alire/toolchains/gnat_native_*/*/bin/ld
+        do
+          ln -sf /usr/bin/ld "$ld"
+        done
 
     - name: Run new tests
       run: alr test
