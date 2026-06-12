@@ -100,15 +100,29 @@ package body LML.Output is
          when Map_Kind =>
             Builder.Begin_Map;
 
-            for Key of This.Keys loop
-               if Key.Kind /= Str_Kind then
-                  raise Program_Error
-                    with "LML currently only supports string keys";
-               end if;
+            --  Iterate by index on purpose: with assertions on,
+            --  GNAT <= 11 mis-finalizes the controlled temporaries
+            --  of `for ... of` iteration over Any, crashing at scope
+            --  exit (same bug family as the Strict_Names workaround
+            --  in lml-input-pragmas.adb).
+            declare
+               Keys : constant Yeison.Any := This.Keys;
+            begin
+               for I in 1 .. Keys.Length loop
+                  declare
+                     Key : constant Yeison.Any :=
+                       Keys (Yeison.Make.Int (Yeison.Big_Int (I)));
+                  begin
+                     if Key.Kind /= Str_Kind then
+                        raise Program_Error
+                          with "LML currently only supports string keys";
+                     end if;
 
-               Builder.Insert (Key.As_Text);
-               Build (This (Encode (Key.As_Text)), Builder);
-            end loop;
+                     Builder.Insert (Key.As_Text);
+                     Build (This (Encode (Key.As_Text)), Builder);
+                  end;
+               end loop;
+            end;
 
             Builder.End_Map;
 

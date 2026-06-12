@@ -20,7 +20,7 @@ command = ["alr", "run"]
 
 [[depends-on]]
 ada_toml = "~0.4.0"
-adayaml = "~0.2" # 0.3 has a complexer build process, and 0.2 works for us
+adayaml = "~0.2" # 0.3 depends on libgnutls and unixodbc which we don't want
 json = "^6.0.1"
 yeison_12 = "~0.3.1"
 

@@ -436,10 +436,18 @@ package body LML.Input.Pragmas is
    is
       use LML.Options.Pragmas;
 
-      function Strict_Names (Opts : LML.Options.Any'Class) return Yeison.Vec is
+      function Strict_Names (Opts : LML.Options.Any'Class)
+                             return Yeison.Any is
       --  Statement form (not a conditional expression) on purpose: GNAT 15
       --  ICEs on a constant initialized by a conditional expression whose
       --  else branch is `raise ... with ... & External_Tag (...)`.
+      --
+      --  Returns Yeison.Any rather than Yeison.Vec on purpose too: with
+      --  assertions on, GNAT <= 11 evaluates Vec's Dynamic_Predicate on
+      --  an already-finalized temporary of the function result, which
+      --  dereferences a null Impl and surfaces as Program_Error
+      --  "finalize/adjust raised exception" at the Strict declaration
+      --  below. Both branches construct vectors anyway.
       begin
          if Opts in LML.Options.Default_No_Options'Class then
             return Yeison.Empty_Vec;
@@ -452,7 +460,7 @@ package body LML.Input.Pragmas is
          end if;
       end Strict_Names;
 
-      Strict : constant Yeison.Vec := Strict_Names (Options);
+      Strict : constant Yeison.Any := Strict_Names (Options);
 
       Lower_Case_Keys : constant Boolean :=
         (if Options in Input_Options'Class

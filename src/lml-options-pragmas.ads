@@ -4,7 +4,7 @@ package LML.Options.Pragmas with Preelaborate is
 
    package Yeison renames Yeison_12;
 
-   type Input_Options is new Any with record
+   type Input_Options is new Options.Any with record
       Strict : Yeison.Vec := Yeison.Empty_Vec;
       --  Pragma names (case-insensitive) that must parse successfully.
       --  A parse failure for a listed name raises
