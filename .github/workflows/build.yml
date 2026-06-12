@@ -15,6 +15,13 @@ jobs:
         gnat: [^10, ^11, ^12, ^13, ^14, ^15, ""]
         # "" ensures that even if we miss some version, we test with the latest
         # one from Alire.
+        exclude:
+          - os: macos-latest
+            gnat: ^10 # No gnat 10 toolchain for macos
+          - os: macos-latest
+            gnat: ^11 # No gnat 10 toolchain for macos
+          - os: macos-latest
+            gnat: ^12 # No gnat 10 toolchain for macos
     runs-on: ${{ matrix.os }}
 
     steps:
