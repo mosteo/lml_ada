@@ -40,7 +40,9 @@ private
    function New_Nil return TOML_Value
    is (raise LML.Unsupported_Error with "TOML does not support null values");
 
-   procedure Set_In_Map (Map : in out TOML_Value; Key : Text; Val : TOML_Value);
+   procedure Set_In_Map (Map : in out TOML_Value;
+                         Key : Text;
+                         Val : TOML_Value);
 
    procedure Append_To_Vec (Vec : in out TOML_Value; Val : TOML_Value);
 
