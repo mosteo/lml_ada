@@ -6,12 +6,25 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
+        gnat: [^10, ^11, ^12, ^13, ^14, ^15, ""]
+        # "" ensures that even if we miss some version, we test with the latest
+        # one from Alire.
+        exclude:
+          - os: macos-latest
+            gnat: ^10 # No gnat 10 toolchain for macos
+          - os: macos-latest
+            gnat: ^11 # No gnat 10 toolchain for macos
+          - os: macos-latest
+            gnat: ^12 # No gnat 10 toolchain for macos
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -19,9 +32,27 @@ jobs:
 
     - uses: alire-project/setup-alire@v6
       with:
-        version: nightly
-        msys2: false # Windows fails otherwise because C: in tar
+        version: 2.1.1
+        toolchain: gnat_native${{ matrix.gnat }} gprbuild
 
+    # - name: Prepare pin
+    #   run: |
+    #     git clone https://github.com/mosteo/yeison --branch main
+    #     alr pin yeison_12 --use=yeison/yeison_12
+    #     alr -C test/ pin yeison_12 --use=../yeison/yeison_12
+
+    - name: Use system ld (old bundled binutils vs modern glibc)
+      if: runner.os == 'Linux'
+      run: |
+        # GNAT <= 11 toolchains bundle binutils < 2.38, which cannot
+        # read the .relr.dyn section of glibc >= 2.36 (ubuntu >= 24.04).
+        # The system linker works fine with old gcc, so use it instead.
+        # /usr/bin/ld is hardcoded because the toolchain's own ld may
+        # shadow it on PATH.
+        for ld in ~/.local/share/alire/toolchains/gnat_native_*/*/bin/ld
+        do
+          ln -sf /usr/bin/ld "$ld"
+        done
     - name: Build library
       run: alr build
 
@@ -29,6 +60,19 @@ jobs:
       run: alr -C test/ run
 
     # New testsuite
+
+    - uses: alire-project/setup-alire@v6
+      with:
+        version: nightly
+        toolchain: gnat_native${{ matrix.gnat }} gprbuild
+
+    - name: Use system ld (after nightly setup, see above)
+      if: runner.os == 'Linux'
+      run: |
+        for ld in ~/.local/share/alire/toolchains/gnat_native_*/*/bin/ld
+        do
+          ln -sf /usr/bin/ld "$ld"
+        done
 
     - name: Run new tests
       run: alr test
