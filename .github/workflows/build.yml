@@ -12,6 +12,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
+        gnat: [^10, ^11, ^12, ^13, ^14, ^15, ""]
+        # "" ensures that even if we miss some version, we test with the latest
+        # one from Alire.
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -20,7 +23,7 @@ jobs:
     - uses: alire-project/setup-alire@v6
       with:
         version: 2.1.1
-        toolchain: gnat_native^14 gprbuild
+        toolchain: gnat_native${{ matrix.gnat }} gprbuild
 
     # - name: Prepare pin
     #   run: |
@@ -39,7 +42,7 @@ jobs:
     - uses: alire-project/setup-alire@v6
       with:
         version: nightly
-        toolchain: gnat_native^14 gprbuild
+        toolchain: gnat_native${{ matrix.gnat }} gprbuild
 
     - name: Run new tests
       run: alr test

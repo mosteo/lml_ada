@@ -7,6 +7,6 @@ package LML.Options with Preelaborate is
 
    type Default_No_Options is new Any with null record;
 
-   No_Options : constant Default_No_Options := (Any with null record);
+   function No_Options return Default_No_Options is (Any with null record);
 
 end LML.Options;
