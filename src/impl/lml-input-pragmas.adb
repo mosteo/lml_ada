@@ -11,6 +11,10 @@ package body LML.Input.Pragmas is
    --  spec, and silently skip anything else (comments, code, string
    --  literals containing the substring "pragma", malformed pragmas).
    --
+   --  A wholly empty pragma `pragma X;` (no parentheses at all) is also
+   --  recognised: it records the pragma name with an empty inner map, so
+   --  it surfaces as an empty object `{}` rather than being dropped.
+   --
    --  Hits are accumulated into nested Ada Indefinite_Ordered_Maps and
    --  handed to the Builder via LML.Output.Build at the end. The Builder
    --  API is forward-only, so we cannot reopen a closed outer map when a
@@ -516,6 +520,23 @@ package body LML.Input.Pragmas is
          end;
       end Record_Pragma;
 
+      -------------------------
+      -- Record_Empty_Pragma --
+      -------------------------
+
+      procedure Record_Empty_Pragma (Name : Text) is
+         --  A wholly empty pragma `pragma X;` records the pragma name with
+         --  an empty inner map, so it surfaces as an empty object rather
+         --  than being dropped. Idempotent: re-declaring `pragma X;`, or
+         --  declaring it alongside keyed forms of the same name, neither
+         --  overwrites the existing entry nor raises (the 4-arg Insert is a
+         --  no-op when Name is already present).
+         Outer_C  : Outer_Maps.Cursor;
+         Inserted : Boolean;
+      begin
+         Acc.Insert (Name, Inner_Maps.Empty_Map, Outer_C, Inserted);
+      end Record_Empty_Pragma;
+
       ----------------------
       -- Try_Parse_Pragma --
       ----------------------
@@ -573,6 +594,16 @@ package body LML.Input.Pragmas is
                exit;
             end if;
          end loop;
+
+         Skip_Trivia (Image, Pos);
+         if At_Char (Image, Pos, ';') then
+            --  Wholly empty pragma `pragma X;` records the name with an
+            --  empty inner map, surfacing as an empty object `{}` rather
+            --  than being dropped.
+            Pos := Pos + 1;
+            Record_Empty_Pragma (Normalized (Image (Name_F .. Name_L)));
+            return;
+         end if;
 
          if not Consume ('(') then
             Bail;

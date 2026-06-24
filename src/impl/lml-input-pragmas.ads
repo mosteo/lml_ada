@@ -9,6 +9,7 @@ package LML.Input.Pragmas with Preelaborate is
    --  pragmas to a JSON-equivalent format. This is mainly done with Alire
    --  tests in mind, that can use those pragmas:
    --
+   --  pragma Alire_Test;
    --  pragma Alire_Test (Name,        "A test");
    --  pragma Alire_Test (Should_Fail, True);
    --  pragma Alire_Test (Timeout,     11.1); -- It's a duration
@@ -19,7 +20,9 @@ package LML.Input.Pragmas with Preelaborate is
    --  map with the pragma's first argument as key and the second as value
    --  (or Nil when no value is given), autodetected as String, Boolean,
    --  Int, or Real. Both positional (Key, Value) and named (Key => Value)
-   --  forms are accepted; a bare key with no value yields Nil.
+   --  forms are accepted; a bare key with no value yields Nil. A wholly
+   --  empty pragma with no arguments at all (pragma Alire_Test;) is also
+   --  accepted and yields an empty map (an empty object) for that name.
    --
    --  The procedures below will do a best effort to parse, and will silently
    --  discard or ignore anything not fitting expectations. This is not a
@@ -46,6 +49,7 @@ package LML.Input.Pragmas with Preelaborate is
    --  Program_Error during output until Nil rendering is added).
    pragma Alire_Test (Timeout,     11.1);
    pragma Alire_Test (Name => "A test"); -- Named form accepted
+   pragma Alire_Test; -- Wholly empty: yields an empty object {}
 
    --  Complex unsupported cases (yet?)
    pragma Alire_Test (Timeout,  1.0 * 60.0);

@@ -10,6 +10,7 @@ pragma Sample_Pragma (Count,   42);
 pragma Sample_Pragma (Ratio,   1.5);
 pragma Sample_Pragma (Enabled, True);
 pragma Other_Pragma  (Tag,     "another pragma");
+pragma Empty_Pragma;
 
 --  The procedure declaration below stops the scanner; everything
 --  after it must be silently ignored.

@@ -130,6 +130,32 @@ begin
       Assert_Equal (At_Key (Body_Map, "Other"), Y_Int (1), "valueless: Other");
    end;
 
+   --  Wholly empty pragma `pragma X;` (no parentheses) yields an empty
+   --  object: a map with no keys, distinct from the valueless
+   --  `pragma X (Key);` Nil form above.
+   declare
+      Parsed   : constant Yeison.Any := Parse ("pragma Alire_Test;");
+      Body_Map : constant Yeison.Any := At_Key (Parsed, "Alire_Test");
+   begin
+      Assert (Body_Map.Kind = Map_Kind,
+              "empty pragma should be an (empty) map, got "
+              & Body_Map.Kind'Image);
+   end;
+
+   --  An empty pragma is idempotent and merges with keyed forms of the
+   --  same name: declaring it twice plus a keyed form neither raises nor
+   --  loses the keyed value.
+   declare
+      Body_Map : constant Yeison.Any :=
+        At_Key (Parse ("pragma Alire_Test;"             & LF
+                       & "pragma Alire_Test (Name, ""x"");" & LF
+                       & "pragma Alire_Test;"),
+                "Alire_Test");
+   begin
+      Assert_Equal (At_Key (Body_Map, "Name"), Y_Str ("x"),
+                    "empty pragma must not clobber keyed sibling");
+   end;
+
    --  Two pragmas with different names should not collide: each becomes its
    --  own top-level object carrying its own key. The structural equality
    --  subsumes "both names appear" and additionally pins down the nesting,
