@@ -2,19 +2,19 @@
 #ifndef LML_CONFIG_H
 #define LML_CONFIG_H
 
-#define CRATE_VERSION "0.3.0"
+#define CRATE_VERSION "0.5.0"
 #define CRATE_NAME "lml"
 
 #define ALIRE_HOST_OS "linux"
 
 #define ALIRE_HOST_ARCH "x86_64"
 
-#define ALIRE_HOST_DISTRO "ubuntu"
+#define ALIRE_HOST_DISTRO "suse"
 
 #define BUILD_PROFILE_RELEASE 1
 #define BUILD_PROFILE_VALIDATION 2
 #define BUILD_PROFILE_DEVELOPMENT 3
 
-#define BUILD_PROFILE  3
+#define BUILD_PROFILE  2
 
 #endif

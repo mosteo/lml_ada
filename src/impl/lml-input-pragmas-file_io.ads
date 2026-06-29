@@ -13,4 +13,12 @@ package LML.Input.Pragmas.File_IO is
    --  a strict pragma cannot be parsed, and any I/O exception from
    --  Ada.Streams.Stream_IO on file errors.
 
+   procedure From_File (Path    : String;
+                        Builder : in out Output.Builder'Class;
+                        Unit    : out Ada_Unit;
+                        Options : LML.Options.Any'Class :=
+                          LML.Options.No_Options);
+   --  As above, but also report the kind of unit the file declares (see
+   --  From_Pragmas).
+
 end LML.Input.Pragmas.File_IO;

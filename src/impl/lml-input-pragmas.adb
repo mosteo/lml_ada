@@ -418,16 +418,38 @@ package body LML.Input.Pragmas is
       end loop;
    end Skip_To_Semicolon;
 
-   ----------------------
-   -- Is_Stop_Keyword --
-   ----------------------
+   --------------------------------
+   -- Procedure_Is_Parameterless --
+   --------------------------------
 
-   function Is_Stop_Keyword (Word : Text) return Boolean is
-     --  A unit-declaration keyword: reaching one means we are past the
-     --  pragma-bearing prelude of the file.
-     (Same_Word (Word, "procedure")
-        or else Same_Word (Word, "function")
-        or else Same_Word (Word, "generic"));
+   function Procedure_Is_Parameterless (Image    : Text;
+                                        After_Kw : Index) return Boolean
+   is
+      --  After_Kw points just past the "procedure" keyword. Skip the
+      --  defining name (including dotted child-unit names) and report whether
+      --  a parameter list opens. Only a parameterless procedure can be a
+      --  runnable main. We do not advance the caller's cursor: the caller
+      --  exits the scan right after classifying the unit.
+      Pos   : Index := After_Kw;
+      First : Index;
+      Last  : Index_Or_Nil;
+   begin
+      loop
+         Skip_Trivia (Image, Pos);
+         Scan_Identifier (Image, Pos, First, Last);
+         if Last < First then
+            --  No name where one was expected; an unparseable header is not a
+            --  parameterized procedure, so treat it as parameterless.
+            return True;
+         end if;
+         Skip_Trivia (Image, Pos);
+         exit when not At_Char (Image, Pos, '.');
+         Pos := Pos + 1;  --  consume '.' and read the child-unit name
+      end loop;
+      --  A parameter list opens with '('; anything else (is / ; / with /
+      --  renames) means the procedure takes no parameters.
+      return not At_Char (Image, Pos, '(');
+   end Procedure_Is_Parameterless;
 
    ------------------
    -- From_Pragmas --
@@ -435,6 +457,7 @@ package body LML.Input.Pragmas is
 
    procedure From_Pragmas (Image   : Text;
                            Builder : in out Output.Builder'Class;
+                           Unit    : out Ada_Unit;
                            Options : LML.Options.Any'Class :=
                              LML.Options.No_Options)
    is
@@ -674,6 +697,7 @@ package body LML.Input.Pragmas is
       end Try_Parse_Pragma;
 
    begin
+      Unit := Unknown;
       loop
          Skip_Trivia (Image, Pos);
          exit when Pos > Image'Last;
@@ -693,13 +717,33 @@ package body LML.Input.Pragmas is
                declare
                   Word : Text renames Image (First .. Last);
                begin
-                  if Is_Stop_Keyword (Word) then
+                  --  The first unit-declaration keyword ends the
+                  --  pragma-bearing prelude; classify it and stop. `separate`
+                  --  must be recognized before the `procedure`/`function` it
+                  --  precedes in a subunit.
+                  if Same_Word (Word, "package") then
+                     Unit := Package_Unit;
+                     exit;
+                  elsif Same_Word (Word, "function") then
+                     Unit := Function_Unit;
+                     exit;
+                  elsif Same_Word (Word, "generic") then
+                     Unit := Generic_Unit;
+                     exit;
+                  elsif Same_Word (Word, "separate") then
+                     Unit := Separate_Unit;
+                     exit;
+                  elsif Same_Word (Word, "procedure") then
+                     Unit :=
+                       (if Procedure_Is_Parameterless (Image, Pos)
+                        then Procedure_Without_Parameters
+                        else Procedure_With_Parameters);
                      exit;
                   elsif Same_Word (Word, "pragma") then
                      Try_Parse_Pragma;
                   end if;
-                  --  Other identifiers (`with`, `package`, type names,
-                  --  ...) are consumed silently.
+                  --  Other identifiers (`with`, `use`, type names, ...) are
+                  --  consumed silently.
                end;
             end;
 
@@ -733,6 +777,20 @@ package body LML.Input.Pragmas is
          end loop;
          Output.Build (Result, Builder);
       end;
+   end From_Pragmas;
+
+   ------------------
+   -- From_Pragmas --
+   ------------------
+
+   procedure From_Pragmas (Image   : Text;
+                           Builder : in out Output.Builder'Class;
+                           Options : LML.Options.Any'Class :=
+                             LML.Options.No_Options)
+   is
+      Ignored : Ada_Unit;
+   begin
+      From_Pragmas (Image, Builder, Ignored, Options);
    end From_Pragmas;
 
 end LML.Input.Pragmas;

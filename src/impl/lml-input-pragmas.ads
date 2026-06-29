@@ -65,15 +65,36 @@ package LML.Input.Pragmas with Preelaborate is
    --  Since this spec is more or less private, reuse the public one rather
    --  than defining it here.
 
+   type Ada_Unit is
+     (Unknown,                       --  No unit keyword found (empty/odd file)
+      Package_Unit,
+      Function_Unit,
+      Generic_Unit,
+      Separate_Unit,
+      Procedure_Without_Parameters,  --  The only thing that can be a test main
+      Procedure_With_Parameters);
+   --  The kind of compilation unit that ends the pragma-bearing prelude,
+   --  classified from the first unit keyword the scanner reaches. Reported as
+   --  a byproduct of the single pragma scan so callers (e.g. the Alire test
+   --  runner) can tell whether a body is a runnable main procedure.
+
    procedure From_Pragmas (Image   : Text;
                            Builder : in out Output.Builder'Class;
                            Options : LML.Options.Any'Class :=
                              LML.Options.No_Options);
    --  Image can be a whole Ada file, but the parsing will end at the first
-   --  "procedure"/"function"/"generic" occurrence. Pragmas inside Ada comments
-   --  are ignored. Raises Duplicate_Pragma if the same (pragma_name, key) pair
-   --  appears more than once. When Options is
+   --  unit keyword ("package"/"procedure"/"function"/"generic"/"separate").
+   --  Pragmas inside Ada comments are ignored. Raises Duplicate_Pragma if the
+   --  same (pragma_name, key) pair appears more than once. When Options is
    --  LML.Options.Pragmas.Input_Options, pragma names listed in Options.Strict
    --  must parse successfully or Invalid_Pragma_Syntax is raised.
+
+   procedure From_Pragmas (Image   : Text;
+                           Builder : in out Output.Builder'Class;
+                           Unit    : out Ada_Unit;
+                           Options : LML.Options.Any'Class :=
+                             LML.Options.No_Options);
+   --  As above, but also report the kind of unit that terminated the prelude
+   --  scan in Unit (Unknown if none was reached).
 
 end LML.Input.Pragmas;
