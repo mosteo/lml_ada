@@ -24,6 +24,8 @@ jobs:
         exclude:
           - os: macos-latest
             gnat: ^12 # No gnat 12 toolchain for macos
+          - os: macos-latest
+            gnat: ^14 # Strange error with duplicate path
     runs-on: ${{ matrix.os }}
 
     steps:

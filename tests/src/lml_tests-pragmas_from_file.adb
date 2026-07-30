@@ -32,6 +32,7 @@ procedure Lml_Tests.Pragmas_From_File is
      & "pragma Sample_Pragma (Ratio,   1.5);"                       & ASCII.LF
      & "pragma Sample_Pragma (Enabled, True);"                      & ASCII.LF
      & "pragma Other_Pragma  (Tag,     ""another pragma"");"        & ASCII.LF
+     & "pragma Empty_Pragma;"                                       & ASCII.LF
      & ""                                                           & ASCII.LF
      & "procedure Sample_Body is"                                   & ASCII.LF
      & "   pragma Sample_Pragma (Ignored, ""after unit decl"");"    & ASCII.LF
@@ -62,6 +63,7 @@ begin
          Expected : Yeison.Any := Y_Map;
          Sample   : Yeison.Any := Y_Map;
          Other    : Yeison.Any := Y_Map;
+         Empty    : constant Yeison.Any := Y_Map;
       begin
          Ada.Directories.Delete_File (Path);
 
@@ -76,6 +78,7 @@ begin
          Put (Other,  "tag",     Y_Str ("another pragma"));
          Put (Expected, "sample_pragma", Sample);
          Put (Expected, "other_pragma",  Other);
+         Put (Expected, "empty_pragma",  Empty);
 
          Assert_Equal (Parsed, Expected, "pragmas from file");
       end;

@@ -9,6 +9,7 @@ package body LML.Input.Pragmas.File_IO is
 
    procedure From_File (Path    : String;
                         Builder : in out Output.Builder'Class;
+                        Unit    : out Ada_Unit;
                         Options : LML.Options.Any'Class :=
                           LML.Options.No_Options)
    is
@@ -25,7 +26,21 @@ package body LML.Input.Pragmas.File_IO is
          Append (Buffer, LF);
       end loop;
       Close (File);
-      From_Pragmas (To_Wide_Wide_String (Buffer), Builder, Options);
+      From_Pragmas (To_Wide_Wide_String (Buffer), Builder, Unit, Options);
+   end From_File;
+
+   ---------------
+   -- From_File --
+   ---------------
+
+   procedure From_File (Path    : String;
+                        Builder : in out Output.Builder'Class;
+                        Options : LML.Options.Any'Class :=
+                          LML.Options.No_Options)
+   is
+      Ignored : Ada_Unit;
+   begin
+      From_File (Path, Builder, Ignored, Options);
    end From_File;
 
 end LML.Input.Pragmas.File_IO;

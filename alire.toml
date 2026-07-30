@@ -20,8 +20,8 @@ command = ["alr", "run"]
 
 [[depends-on]]
 ada_toml = "~0.4.0"
-adayaml = "~0.2" # 0.3 depends on libgnutls and unixodbc which we don't want
 json = "^6.0.1"
+yamlfk = "~0.2.1"
 yeison_12 = "~0.3.1"
 
 [[pins]]
@@ -30,6 +30,10 @@ yeison_12 = "~0.3.1"
 url    = "https://github.com/mosteo/onox-json-ada"
 subdir = "json"
 commit = "737296c5e378c33ac823af8404f87ebac0eb2fad"
+
+[pins.yamlfk]
+url    = "https://github.com/mosteo/yamlfk"
+commit = "460b5b3e33442a4f07554bbf688731f2270002b1"
 
 [pins.yeison_12]
 url    = "https://github.com/mosteo/yeison"
