@@ -86,15 +86,22 @@ package body LML.Input.JSON is
    -----------------
 
    function From_String (Image : Text) return Yeison.Any
+   is (From_UTF_8 (Encode (Image)));
+
+   ----------------
+   -- From_UTF_8 --
+   ----------------
+
+   function From_UTF_8 (Image : Text_UTF8) return Yeison.Any
    is
-      Parser  : Parsers.Parser := Parsers.Create (Encode (Image));
+      Parser  : Parsers.Parser := Parsers.Create (Image);
       Builder : Output.Yeison.Builder;
    begin
       return Result : Yeison.Any do
          From_JSON (Parser.Parse, Builder);
          Result := Builder.To_Yeison;
       end return;
-   end From_String;
+   end From_UTF_8;
 
    ---------------
    -- From_JSON --

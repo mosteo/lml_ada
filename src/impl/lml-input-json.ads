@@ -19,6 +19,11 @@ package LML.Input.JSON with Preelaborate is
    --  and the resulting populated Builder to directly get your desired
    --  output.
 
+   function From_UTF_8 (Image : Text_UTF8) return Yeison.Any;
+   --  As From_String, for text that is already UTF-8. Converting it to Text
+   --  and back needs temporary copies on the stack, four times its size for
+   --  Text, which may exhaust the stack with megabytes of input.
+
    procedure From_JSON (This    : Types.JSON_Value;
                         Builder : in out Output.Builder'Class);
 

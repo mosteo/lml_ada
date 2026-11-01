@@ -1,3 +1,4 @@
+pragma Alire_Test;
 with Lml_Tests.Support;
 
 --  Object keywords: properties recursion, required, additionalProperties

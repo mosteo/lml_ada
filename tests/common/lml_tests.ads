@@ -5,6 +5,10 @@ pragma Warnings (On);
 with Ada.Strings.Wide_Wide_Fixed;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 
+pragma Ignore_Pragma (Alire_Test);
+--  Alire configures tests through this pragma. This clause silences warnings
+--  by GNAT about it. The pragma has no other impact on GNAT compilation.
+
 package Lml_Tests is
 
    subtype Text is Wide_Wide_String;

@@ -65,14 +65,16 @@ package body LML.Output.Tree is
 
       if not This.Stack.Is_Empty then
          declare
-            Top : Node := This.Stack.Last_Element;
+            Top : Node
+            renames This.Stack.Reference (This.Stack.Last).Element.all;
+            --  Modified in place, as copying the whole collection for every
+            --  element it receives makes building quadratic in its size.
          begin
             if Is_Map (Top) then
                Set_In_Map (Top, This.Pop, V);
             else
                Append_To_Vec (Top, V);
             end if;
-            This.Stack.Replace_Element (This.Stack.Last, Top);
          end;
       elsif not Is_Composite (V) then
          --  A stand-alone value that is itself the whole data structure.

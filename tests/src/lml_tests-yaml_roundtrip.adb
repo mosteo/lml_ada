@@ -1,3 +1,4 @@
+pragma Alire_Test;
 with LML;
 with LML.Output;
 with LML.Output.Factory;

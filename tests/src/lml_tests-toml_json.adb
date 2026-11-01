@@ -1,3 +1,4 @@
+pragma Alire_Test;
 with LML;
 with LML.Conversions.TOML_JSON;
 

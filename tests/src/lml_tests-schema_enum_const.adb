@@ -1,3 +1,4 @@
+pragma Alire_Test;
 with Lml_Tests.Support;
 
 --  `const` (exact, type-sensitive equality) and `enum` (membership),

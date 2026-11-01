@@ -1,3 +1,4 @@
+pragma Alire_Test;
 with LML;
 with LML.Input.YAML.Initialization;
 

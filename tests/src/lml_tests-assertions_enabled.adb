@@ -1,3 +1,4 @@
+pragma Alire_Test;
 procedure Lml_Tests.Assertions_Enabled is
 begin
    begin

@@ -1,3 +1,4 @@
+pragma Alire_Test;
 with Lml_Tests.Support;
 
 --  String length and numeric keywords: minimum/maximum, exclusive bounds

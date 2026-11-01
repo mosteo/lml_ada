@@ -1,3 +1,4 @@
+pragma Alire_Test;
 with Lml_Tests.Support;
 
 --  if/then/else: the `if` subschema is evaluated silently and selects which
