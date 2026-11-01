@@ -1,3 +1,4 @@
+pragma Alire_Test;
 with Lml_Tests.Support;
 
 --  Array keywords: items, min/maxItems, uniqueItems, prefixItems and

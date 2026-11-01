@@ -1,3 +1,4 @@
+pragma Alire_Test;
 with LML.Output.Factory;
 
 with Yeison_12;

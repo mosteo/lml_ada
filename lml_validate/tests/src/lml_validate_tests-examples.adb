@@ -1,3 +1,4 @@
+pragma Alire_Test;
 with Ada.Directories;
 
 with LML;

@@ -1,3 +1,4 @@
+pragma Alire_Test;
 with Lml_Tests.Support;
 
 --  Applicators allOf/anyOf/oneOf/not and the boolean schemas true/false.

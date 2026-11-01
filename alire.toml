@@ -29,7 +29,7 @@ yeison_12 = "~0.3.1"
 [pins.json]
 url    = "https://github.com/mosteo/onox-json-ada"
 subdir = "json"
-commit = "737296c5e378c33ac823af8404f87ebac0eb2fad"
+commit = "03f9b60dd4dad7522f830b7a6356cbae91702a59"
 
 [pins.yamlfk]
 url    = "https://github.com/mosteo/yamlfk"

@@ -1,3 +1,4 @@
+pragma Alire_Test;
 with Lml_Tests.Support;
 
 --  The `type` keyword, one assertion per JSON-Schema type name, plus the
